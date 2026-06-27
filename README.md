@@ -42,16 +42,7 @@ A plataforma está totalmente configurada para ser executada localmente utilizan
    * **Backend API Docs (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
    * **Health Check da API:** [http://localhost:8000/health](http://localhost:8000/health)
 
-### 🔑 Credenciais do Administrador (Padrão)
 
-Para aceder ao painel administrativo e gerir materiais, professores e simulados, podes usar as seguintes credenciais padrão geradas pelo script de seeding:
-* **E-mail:** `admin@aprovei.com`
-* **Palavra-passe:** `AdminAprovei2026!`
-
-Se precisares de restaurar ou criar esta conta de administrador a qualquer momento com os contentores Docker ativos, basta executar:
-```bash
-sudo docker exec -it aprovei_backend python /app/reset_admin.py
-```
 
 ### 🤖 Integração com a IA LUNAR Local
 
