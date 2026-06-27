@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --lilac-light: #7B4FA6;
+  --lilac-base: #5B2E82;
+  --lilac-dark: #2E1245;
+  --orange-accent: #FF6B00;
+  --white: #FFFFFF;
+}
+
+body {
+  background-color: var(--lilac-dark);
+  color: var(--white);
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* 3D Plush Lilac Background */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    /* Top Left Soft Highlight */
+    radial-gradient(ellipse at 15% 20%, rgba(123, 79, 166, 0.45) 0%, transparent 60%),
+    /* Bottom Right Deep Shadow */
+    radial-gradient(ellipse at 85% 80%, rgba(46, 18, 69, 0.4) 0%, transparent 60%),
+    /* Center Fold/Curve */
+    radial-gradient(ellipse at 50% 50%, rgba(91, 46, 130, 0.5) 0%, transparent 70%),
+    /* Top Right Dimmed Shadow */
+    radial-gradient(ellipse at 80% 10%, rgba(46, 18, 69, 0.35) 0%, transparent 50%),
+    /* Bottom Left Highlight */
+    radial-gradient(ellipse at 20% 85%, rgba(123, 79, 166, 0.3) 0%, transparent 65%);
+  /* Base Lilac */
+  background-color: var(--lilac-base);
+  /* Optional slight blur to ensure perfectly smooth transitions */
+  filter: blur(20px);
+}
+
+/* Constellation / Background Circuit (Camada 1) */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px),
+    radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 80px 80px, 120px 120px;
+  background-position: 0 0, 40px 40px;
+  animation: pulseConstellation 10s ease-in-out infinite alternate;
+}
+
+@keyframes pulseConstellation {
+  0% { opacity: 0.1; }
+  100% { opacity: 0.3; }
+}
+
+@layer components {
+  /* 1. Palavras-chave sólidas em laranja */
+  .text-orange-glow {
+    color: var(--orange-accent);
+    text-shadow: 
+      0 0 8px rgba(255,107,0,0.9), 
+      0 0 24px rgba(255,107,0,0.6), 
+      0 0 40px rgba(255,107,0,0.3);
+  }
+
+  /* 2. Feixe de luz atravessando letras brancas */
+  .text-beam-effect {
+    background: linear-gradient(110deg, #FFFFFF 30%, #FF6B00 48%, #FFEAD9 52%, #FFFFFF 65%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 6px rgba(255,107,0,0.4));
+    animation: beamSlide 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* 3. Botões e CTAs em laranja sólido */
+  .btn-orange {
+    @apply relative overflow-hidden px-8 py-4 rounded-xl font-bold transition-all duration-300;
+    background: var(--orange-accent);
+    color: var(--lilac-dark);
+    box-shadow: 0 0 16px rgba(255,107,0,0.55), 0 0 32px rgba(255,107,0,0.25);
+  }
+  .btn-orange:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 24px rgba(255,107,0,0.7), 0 0 48px rgba(255,107,0,0.35);
+  }
+
+  /* Card base for new design */
+  .card-lilac-glass {
+    @apply rounded-2xl p-8 transition-all duration-500 relative overflow-hidden;
+    background: rgba(91, 46, 130, 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(123, 79, 166, 0.3);
+    box-shadow: 0 15px 35px -10px rgba(46, 18, 69, 0.5);
+  }
+  
+  .card-lilac-glass:hover {
+    transform: translateY(-4px);
+    border-color: rgba(123, 79, 166, 0.5);
+    box-shadow: 0 25px 45px -10px rgba(46, 18, 69, 0.6), 0 0 15px rgba(123, 79, 166, 0.2);
+  }
+
+  /* Utilitários para as linhas (Camada 2 e 3) que podem ser usados via className no TSX */
+  .neural-line {
+    @apply absolute bg-white/20;
+    /* Animação de pulso de fluxo feita via pseudo-elemento */
+  }
+  .neural-line::after {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-full bg-white opacity-50;
+    /* Aqui no TSX você definiria animações de clip-path ou scaleX para o pulso */
+  }
+
+  .scan-line {
+    @apply absolute top-0 left-0 w-full h-[1px] bg-white pointer-events-none;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
+    /* The class animation: 'scan' should be applied to trigger it */
+  }
+}
+
+
+/* Neural path pulse animation */
+.neural-overlay .neural-path {
+  stroke-dasharray: 8 6;
+  stroke-linecap: round;
+}
+.neural-overlay .neural-pulse {
+  animation: neuralPulse 3.5s ease-in-out infinite;
+  stroke-linecap: round;
+}
+
+@keyframes neuralPulse {
+  0% { stroke-dashoffset: 200; opacity: 0; }
+  20% { opacity: 0.9; }
+  60% { stroke-dashoffset: 0; opacity: 0.9; }
+  100% { stroke-dashoffset: -200; opacity: 0; }
+}
+
+/* Scan animation — single pass with soft fade at edges */
+.scan-line {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 45%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,0.9) 55%, rgba(255,255,255,0) 100%);
+  transform: translateX(-120%);
+  opacity: 0;
+}
+.scan-line.scan-active {
+  animation: scanMove 2.2s cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes scanMove {
+  0% { transform: translateX(-120%) rotate(-4deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translateX(20%) rotate(-2deg); opacity: 1; }
+  100% { transform: translateX(120%) rotate(2deg); opacity: 0; }
+}
+
+/* Constellation overlay z-index and subtle motion */
+.constellation-overlay { width: 100%; height: 100%; animation: constPulse 14s ease-in-out infinite alternate; }
+@keyframes constPulse { 0% { opacity: 0.08; } 100% { opacity: 0.28; } }
+
+/* Utility for slow pulsing glow used elsewhere */
+@keyframes pulse-slow { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.04); opacity: 0.7; } 100% { transform: scale(1); opacity: 0.9; } }
+.animate-pulse-slow { animation: pulse-slow 6s infinite ease-in-out; }
