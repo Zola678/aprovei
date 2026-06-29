@@ -5,7 +5,7 @@ class ExamBase(BaseModel):
     university: str = Field(..., min_length=2)
     subject: str = Field(..., min_length=2)
     year: int = Field(..., ge=2000, le=2030)
-    category: str = Field(..., pattern="^(acesso|exame_especial)$")
+    category: str = Field(..., pattern="^(acesso|exame_especial|geral)$")
     solved: bool = False
     solution_pdf_url: str | None = None
     description: str | None = None
