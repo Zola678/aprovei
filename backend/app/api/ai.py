@@ -47,7 +47,7 @@ async def generate_ai_response(user_input: str, history: List[AIChatMessage], ed
     # 1. Tentar contactar a IA LUNAR nativa
     try:
         prompt_with_context = f"[Contexto de Estudos Aprovei: {educational_level}] {user_input}"
-        lunar_resp = lunar_ai.run(prompt_with_context)
+        lunar_resp = await asyncio.to_thread(lunar_ai.run, prompt_with_context)
         # Se for executada com sucesso e não for o aviso offline estático, devolve a resposta
         if lunar_resp and not lunar_resp.startswith("LUNAR CORE EXCEPTION"):
             return lunar_resp
