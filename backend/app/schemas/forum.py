@@ -18,19 +18,36 @@ class ForumComment(ForumCommentBase):
     class Config:
         from_attributes = True
 
+class CallConfirmationSchema(BaseModel):
+    id: int
+    post_id: int
+    user_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class ForumPostBase(BaseModel):
     title: str = Field(..., min_length=2)
     content: str = Field(..., min_length=5)
     category: str = "Geral"
 
 class ForumPostCreate(ForumPostBase):
-    pass
+    is_call: bool = False
+    call_title: str | None = None
+    call_scheduled_at: datetime | None = None
 
 class ForumPost(ForumPostBase):
     id: int
     user_id: int
     created_at: datetime
     likes: int
+    is_call: bool = False
+    call_title: str | None = None
+    call_scheduled_at: datetime | None = None
+    call_status: str = "scheduled"
+    call_url: str | None = None
+    confirmations: list[CallConfirmationSchema] = []
     author: User | None = None
     comments: list[ForumComment] = []
 

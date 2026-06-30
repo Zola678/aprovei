@@ -67,8 +67,16 @@ class ForumPost(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     likes = Column(Integer, default=0)
     
+    # Live Call Streaming Fields
+    is_call = Column(Boolean, default=False)
+    call_title = Column(String, nullable=True)
+    call_scheduled_at = Column(DateTime, nullable=True)
+    call_status = Column(String, default="scheduled")  # 'scheduled', 'live', 'ended'
+    call_url = Column(String, nullable=True)
+    
     author = relationship("User", back_populates="forum_posts")
     comments = relationship("ForumComment", back_populates="post", cascade="all, delete-orphan")
+    confirmations = relationship("CallConfirmation", back_populates="post", cascade="all, delete-orphan")
 
 class ForumComment(Base):
     __tablename__ = "forum_comments"
@@ -144,6 +152,17 @@ class PostLike(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     post_id = Column(Integer, ForeignKey("forum_posts.id"), nullable=False)
+
+
+class CallConfirmation(Base):
+    __tablename__ = "call_confirmations"
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("forum_posts.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    post = relationship("ForumPost", back_populates="confirmations")
+    user = relationship("User")
 
 
 class Classroom(Base):

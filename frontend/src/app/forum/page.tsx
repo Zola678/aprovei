@@ -22,10 +22,15 @@ import {
   Dna, 
   GraduationCap, 
   BookOpen,
-  MessageSquare 
+  MessageSquare,
+  Video as VideoIcon,
+  Calendar,
+  Play,
+  Users
 } from 'lucide-react';
 import Link from 'next/link';
 import api, { getStorageUrl } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 const CATEGORIES = [
   { id: 'all', name: 'Todos os Debates', icon: 'Sparkles', description: 'Visão geral de todas as discussões da comunidade.' },
@@ -78,6 +83,7 @@ const LEADERBOARD = [
 ];
 
 export default function ForumPage() {
+  const router = useRouter();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -90,6 +96,11 @@ export default function ForumPage() {
   const [category, setCategory] = useState('Geral');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [postError, setPostError] = useState('');
+  
+  // Call States
+  const [isCall, setIsCall] = useState(false);
+  const [callTitle, setCallTitle] = useState('');
+  const [callScheduledAt, setCallScheduledAt] = useState('');
 
   // Fetch token and user on mount
   useEffect(() => {
@@ -154,16 +165,60 @@ export default function ForumPage() {
       const res = await api.post('/forum', {
         title,
         content,
-        category
+        category,
+        is_call: isCall,
+        call_title: isCall ? (callTitle.trim() || title) : null,
+        call_scheduled_at: isCall ? (callScheduledAt || new Date().toISOString()) : null
       });
       setPosts(prev => [res.data, ...prev]);
       setTitle('');
       setContent('');
+      setIsCall(false);
+      setCallTitle('');
+      setCallScheduledAt('');
     } catch (err: any) {
       console.error("Erro ao criar debate:", err);
       setPostError(err.response?.data?.detail || "Erro ao publicar debate. Tenta novamente.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmCall = async (postId: number, isConfirmed: boolean) => {
+    if (!token) {
+      alert("Precisas de fazer login para confirmar presença em chamadas.");
+      return;
+    }
+    try {
+      const endpoint = isConfirmed ? 'unconfirm-call' : 'confirm-call';
+      const res = await api.post(`/forum/${postId}/${endpoint}`);
+      setPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          return { ...p, confirmations: res.data.confirmations, call_status: res.data.call_status, call_url: res.data.call_url };
+        }
+        return p;
+      }));
+    } catch (err) {
+      console.error("Erro ao confirmar presença na chamada:", err);
+    }
+  };
+
+  const handleStartCall = async (postId: number) => {
+    if (!token) {
+      alert("Precisas de fazer login para iniciar chamadas.");
+      return;
+    }
+    try {
+      const res = await api.post(`/forum/${postId}/start-call`);
+      setPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          return { ...p, call_status: res.data.call_status, call_url: res.data.call_url };
+        }
+        return p;
+      }));
+      router.push(`/forum/stream/${postId}`);
+    } catch (err) {
+      console.error("Erro ao iniciar chamada:", err);
     }
   };
 
@@ -300,6 +355,54 @@ export default function ForumPage() {
                   </div>
                 </div>
 
+                {/* Agendamento de Chamada ao Vivo */}
+                <div className="p-4 bg-lilac-dark/35 border border-lilac-light/10 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <VideoIcon className="w-4 h-4 text-orange" />
+                      <span className="text-xs font-bold text-white">Agendar Chamada de Estudo / Debate ao Vivo</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={isCall} 
+                        onChange={(e) => setIsCall(e.target.checked)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-9 h-5 bg-lilac-dark/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange"></div>
+                    </label>
+                  </div>
+
+                  {isCall && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5"
+                    >
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Título da Chamada (Opcional)</label>
+                        <input 
+                          type="text" 
+                          value={callTitle}
+                          onChange={(e) => setCallTitle(e.target.value)}
+                          placeholder="Ex: Aula de Resolução ao Vivo"
+                          className="w-full bg-lilac-dark/40 border border-lilac-light/20 rounded-xl px-3 py-2 text-white placeholder:text-white/30 outline-none text-xs focus:border-orange/50"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Data & Hora da Chamada</label>
+                        <input 
+                          type="datetime-local" 
+                          value={callScheduledAt}
+                          onChange={(e) => setCallScheduledAt(e.target.value)}
+                          required={isCall}
+                          className="w-full bg-lilac-dark/40 border border-lilac-light/20 rounded-xl px-3 py-2 text-white outline-none text-xs cursor-pointer focus:border-orange/50"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Conteúdo da Publicação</label>
                   <textarea 
@@ -407,6 +510,97 @@ export default function ForumPage() {
                           {post.content}
                         </p>
                       </Link>
+
+                      {/* Live Call Block */}
+                      {post.is_call && (
+                        <div className="mb-4 p-5 bg-lilac-dark/45 border border-lilac-light/15 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-left shadow-inner">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              {post.call_status === 'live' ? (
+                                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/25 text-[10px] font-black text-rose-500 animate-pulse">
+                                  <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+                                  <span>🔴 EM DIRETO</span>
+                                </span>
+                              ) : post.call_status === 'ended' ? (
+                                <span className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-white/50">
+                                  Terminada
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange/10 border border-orange/20 text-[10px] font-bold text-orange">
+                                  <Calendar className="w-3 h-3" />
+                                  <span>Agendada</span>
+                                </span>
+                              )}
+                              <span className="text-xs font-bold text-white/80">
+                                {post.call_title || "Chamada de Estudo"}
+                              </span>
+                            </div>
+                            
+                            <p className="text-xs text-white/60 font-medium">
+                              Previsão: {post.call_scheduled_at ? new Date(post.call_scheduled_at).toLocaleString('pt-AO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "Indefinida"}
+                            </p>
+                            
+                            {/* Confirmed attendance count */}
+                            <div className="flex items-center gap-2 text-xs text-white/50 font-semibold pt-1">
+                              <Users className="w-3.5 h-3.5 text-orange" />
+                              <span>
+                                {post.confirmations?.length || 0} confirmados
+                              </span>
+                              {post.call_status === 'scheduled' && (
+                                <span className="text-orange/80">
+                                  ({post.confirmations?.length || 0}/5 para início automático)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            {/* RSVP Button */}
+                            {post.call_status === 'scheduled' && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleConfirmCall(post.id, post.confirmations?.some((c: any) => c.user_id === user?.id));
+                                }}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                                  post.confirmations?.some((c: any) => c.user_id === user?.id)
+                                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white'
+                                    : 'bg-orange/15 border-orange/25 text-orange hover:bg-orange hover:text-lilac-dark'
+                                }`}
+                              >
+                                {post.confirmations?.some((c: any) => c.user_id === user?.id)
+                                  ? 'Cancelar Presença'
+                                  : 'Confirmar Presença'}
+                              </button>
+                            )}
+
+                            {/* Start Manual Button */}
+                            {post.call_status === 'scheduled' && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleStartCall(post.id);
+                                }}
+                                className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-orange hover:border-orange hover:text-lilac-dark text-white/80 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                              >
+                                <Play className="w-3 h-3 fill-current" />
+                                <span>Iniciar Manual</span>
+                              </button>
+                            )}
+
+                            {/* Enter Live Call Button */}
+                            {post.call_status === 'live' && (
+                              <Link
+                                href={`/forum/stream/${post.id}`}
+                                className="px-5 py-2 bg-gradient-to-r from-orange to-amber-500 text-lilac-dark rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,107,0,0.3)]"
+                              >
+                                <VideoIcon className="w-3.5 h-3.5 fill-current" />
+                                <span>Entrar na Chamada</span>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Actions */}
                       <div className="flex items-center justify-between pt-4 border-t border-white/10">
