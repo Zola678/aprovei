@@ -50,9 +50,9 @@ export default function TeacherDashboard({ user }: { user: any }) {
   return (
     <div className="space-y-10 pb-20 text-left font-sans">
       {/* Banner */}
-      <div className="bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] backdrop-blur-2xl relative overflow-hidden">
+      <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] backdrop-blur-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-orange/5 rounded-bl-full pointer-events-none"></div>
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           {user.photo_url ? (
             <img 
               src={getFullUrl(user.photo_url)} 
@@ -65,40 +65,40 @@ export default function TeacherDashboard({ user }: { user: any }) {
             </div>
           )}
           <div>
-            <h2 className="text-3xl font-black text-white">Painel do Explicador 🎓</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">Painel do Explicador 🎓</h2>
             <p className="text-white/60">Bem-vindo(a), Prof. {user.full_name}!</p>
           </div>
         </div>
       </div>
 
       {/* Grid de Metricas */}
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-4">
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
-          <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Minhas Turmas</h4>
-          <p className="text-3xl font-black text-white mt-2">{classrooms.length} Ativas</p>
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <div className="bg-white/5 p-4 sm:p-6 rounded-2xl border border-white/10">
+          <h4 className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Minhas Turmas</h4>
+          <p className="text-xl sm:text-3xl font-black text-white mt-2">{classrooms.length} Ativas</p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
-          <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Preço Definido</h4>
-          <p className="text-3xl font-black text-orange mt-2">
+        <div className="bg-white/5 p-4 sm:p-6 rounded-2xl border border-white/10">
+          <h4 className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Preço Definido</h4>
+          <p className="text-xl sm:text-3xl font-black text-orange mt-2">
             {classrooms.length > 0 ? Number(classrooms[0].price).toLocaleString() : '---'} Kz
           </p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
-          <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Inscrições Pendentes</h4>
-          <p className="text-3xl font-black text-amber-400 mt-2">{pendingEnrollments.length} alunos</p>
+        <div className="bg-white/5 p-4 sm:p-6 rounded-2xl border border-white/10">
+          <h4 className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Inscrições Pendentes</h4>
+          <p className="text-xl sm:text-3xl font-black text-amber-400 mt-2">{pendingEnrollments.length} alunos</p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
-          <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Avaliação Média</h4>
-          <p className="text-3xl font-black text-white mt-2">5.0 ★</p>
+        <div className="bg-white/5 p-4 sm:p-6 rounded-2xl border border-white/10">
+          <h4 className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Avaliação Média</h4>
+          <p className="text-xl sm:text-3xl font-black text-white mt-2">5.0 ★</p>
         </div>
       </div>
 
       {/* Conteúdo Principal */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Moderação Rápida de Matrículas */}
-        <div className="bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] space-y-4 flex flex-col justify-between">
+        <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-orange" />
               <span>Solicitações de Matrículas Recentes</span>
             </h3>
@@ -125,9 +125,9 @@ export default function TeacherDashboard({ user }: { user: any }) {
         </div>
 
         {/* Minhas Turmas Criadas */}
-        <div className="bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] space-y-4 flex flex-col justify-between">
+        <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
               <Video className="w-5 h-5 text-orange" />
               <span>Minhas Turmas Digitais</span>
             </h3>

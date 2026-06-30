@@ -162,9 +162,9 @@ export default function AdminDashboard({ user }: { user: any }) {
         )}
       </AnimatePresence>
 
-      <div className="flex justify-between items-center bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] backdrop-blur-2xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] gap-4 backdrop-blur-2xl">
         <div>
-          <h2 className="text-3xl font-black text-white">Painel do Administrador 🛡️</h2>
+          <h2 className="text-2xl sm:text-3xl font-black text-white">Painel do Administrador 🛡️</h2>
           <p className="text-white/60">Controle total do ecossistema Aprovei.</p>
         </div>
         <span className="px-4 py-2 rounded-full bg-orange/10 border border-orange/25 text-orange font-bold text-sm">
@@ -233,8 +233,8 @@ export default function AdminDashboard({ user }: { user: any }) {
       {/* Conteúdo das Tabs */}
       <div>
         {activeTab === 'pending' && (
-          <div className="bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] backdrop-blur-2xl space-y-6">
-            <h3 className="text-2xl font-black text-white flex items-center gap-3">
+          <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] backdrop-blur-2xl space-y-6">
+            <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
               <span>📋 Fila de Avaliação de Explicadores</span>
             </h3>
 
@@ -245,7 +245,7 @@ export default function AdminDashboard({ user }: { user: any }) {
             ) : (
               <div className="space-y-6">
                 {pending.map((candidate) => (
-                  <div key={candidate.id} className="bg-white/5 border border-white/10 rounded-[1.5rem] p-6 flex flex-col xl:flex-row gap-6 justify-between items-start">
+                  <div key={candidate.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 justify-between items-start">
                     <div className="flex gap-4 items-start flex-1">
                       {candidate.photo_url ? (
                         <img 
@@ -337,8 +337,8 @@ export default function AdminDashboard({ user }: { user: any }) {
         )}
 
         {activeTab === 'students' && (
-          <div className="bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] backdrop-blur-2xl space-y-6">
-            <h3 className="text-2xl font-black text-white">🎓 Estudantes Registados no Sistema</h3>
+          <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] backdrop-blur-2xl space-y-6">
+            <h3 className="text-xl sm:text-2xl font-black text-white">🎓 Estudantes Registados no Sistema</h3>
             {students.length === 0 ? (
               <p className="text-white/55 font-medium py-8 text-center border border-dashed border-white/10 rounded-2xl">
                 Nenhum estudante registado na base de dados.
@@ -379,8 +379,8 @@ export default function AdminDashboard({ user }: { user: any }) {
         )}
 
         {activeTab === 'teachers' && (
-          <div className="bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] backdrop-blur-2xl space-y-6">
-            <h3 className="text-2xl font-black text-white">👨‍🏫 Explicadores Ativos no Sistema</h3>
+          <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] backdrop-blur-2xl space-y-6">
+            <h3 className="text-xl sm:text-2xl font-black text-white">👨‍🏫 Explicadores Ativos no Sistema</h3>
             {activeTeachers.length === 0 ? (
               <p className="text-white/55 font-medium py-8 text-center border border-dashed border-white/10 rounded-2xl">
                 Nenhum explicador ativo na base de dados.
@@ -388,7 +388,7 @@ export default function AdminDashboard({ user }: { user: any }) {
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
                 {activeTeachers.map((teacher) => (
-                  <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-[1.5rem] p-6 flex gap-4 items-start">
+                  <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex gap-4 items-start">
                     {teacher.photo_url ? (
                       <img 
                         src={getStorageUrl(teacher.photo_url)} 

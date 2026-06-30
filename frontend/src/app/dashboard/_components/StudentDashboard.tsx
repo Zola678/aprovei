@@ -40,11 +40,11 @@ export default function StudentDashboard({
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-lilac-dark/45 border border-white/10 p-8 rounded-[2rem] shadow-2xl backdrop-blur-2xl relative overflow-hidden"
+        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-2xl backdrop-blur-2xl relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-orange/5 rounded-bl-full pointer-events-none"></div>
         <div className="space-y-2">
-          <h2 className="text-3xl font-black text-white leading-tight font-title">
+          <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight font-title">
             Bons estudos, <span className="text-orange-glow">{user.full_name || "Estudante"}</span>! 
           </h2>
           <p className="text-white/60 font-medium text-sm md:text-base">
@@ -77,12 +77,12 @@ export default function StudentDashboard({
         className="grid gap-6 md:grid-cols-3"
       >
         {/* Weekly Goals Card */}
-        <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-8 rounded-[2rem] flex flex-col justify-between space-y-6 group hover:border-orange/20 transition-all duration-500 cursor-pointer">
+        <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] flex flex-col justify-between space-y-6 group hover:border-orange/20 transition-all duration-500 cursor-pointer">
           <div>
             <div className="p-2.5 bg-orange/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
               <Calendar className="w-6 h-6 text-orange" />
             </div>
-            <h3 className="font-black text-xl text-white font-title">Metas Semanais</h3>
+            <h3 className="font-black text-lg sm:text-xl text-white font-title">Metas Semanais</h3>
           </div>
           <div className="space-y-2">
             <div className="w-full bg-white/10 h-3 rounded-full overflow-hidden relative border border-white/5">
@@ -103,13 +103,13 @@ export default function StudentDashboard({
         </motion.div>
 
         {/* Dynamic Action Card */}
-        <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-8 rounded-[2rem] flex flex-col justify-between space-y-6 group hover:border-orange/20 transition-all duration-500 cursor-pointer">
+        <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] flex flex-col justify-between space-y-6 group hover:border-orange/20 transition-all duration-500 cursor-pointer">
           <div className="flex justify-between items-start">
             <div>
               <div className="p-2.5 bg-orange/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Zap className="w-6 h-6 text-orange animate-pulse" />
               </div>
-              <h3 className="font-black text-xl text-white font-title">
+              <h3 className="font-black text-lg sm:text-xl text-white font-title">
                 {isHighSchool ? "Manuais & Exercícios" : "Simulações de Exame"}
               </h3>
             </div>
@@ -130,7 +130,7 @@ export default function StudentDashboard({
         </motion.div>
 
         {/* AI Tutor Card */}
-        <motion.div variants={itemVariants} className="bg-gradient-to-br from-primary to-primary-dark p-8 rounded-[2rem] border border-primary/20 shadow-lg flex flex-col justify-between space-y-6 group relative overflow-hidden hover:shadow-xl transition-all duration-500">
+        <motion.div variants={itemVariants} className="bg-gradient-to-br from-primary to-primary-dark p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] border border-primary/20 shadow-lg flex flex-col justify-between space-y-6 group relative overflow-hidden hover:shadow-xl transition-all duration-500">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full -z-0 blur-2xl group-hover:bg-white/20 transition-colors duration-500"></div>
           
           <div className="relative z-10 flex flex-col h-full justify-between space-y-6 text-left">
@@ -138,7 +138,7 @@ export default function StudentDashboard({
               <div className="p-2.5 bg-white/20 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-black text-xl text-white font-title">Falar com o Tutor IA</h3>
+              <h3 className="font-black text-lg sm:text-xl text-white font-title">Falar com o Tutor IA</h3>
             </div>
             <p className="text-sm text-white/90 font-medium leading-relaxed">
               Tira dúvidas instantâneas sobre qualquer conteúdo de {isHighSchool ? "Matemática ou Física do 2º ciclo" : "exames oficiais da UAN ou ISUTIC"}.
@@ -162,9 +162,9 @@ export default function StudentDashboard({
         <div className="lg:col-span-8 space-y-8">
           
           {/* Video Playlists */}
-          <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-8 rounded-[2rem] space-y-8 relative overflow-hidden group hover:border-orange/20 transition-all duration-500">
+          <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] space-y-6 sm:space-y-8 relative overflow-hidden group hover:border-orange/20 transition-all duration-500">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange to-transparent"></div>
-            <h3 className="text-2xl font-black text-white flex items-center gap-3 font-title">
+            <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3 font-title">
               <div className="p-2.5 bg-orange/10 rounded-xl border border-orange/20">
                 <Play className="text-orange w-6 h-6 fill-current" />
               </div>
@@ -175,7 +175,7 @@ export default function StudentDashboard({
                 <motion.div 
                   whileHover={{ scale: 1.01 }}
                   key={idx} 
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 hover:border-orange/20 hover:shadow-md transition-all cursor-pointer group gap-4"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 hover:border-orange/20 hover:shadow-md transition-all cursor-pointer group gap-4"
                   onClick={() => vid.file_url && window.open(vid.file_url.startsWith('storage') ? getStorageUrl(vid.file_url) : vid.file_url, '_blank')}
                 >
                   <div className="flex items-center gap-4 text-left">
@@ -203,9 +203,9 @@ export default function StudentDashboard({
           </motion.div>
 
           {/* Books / Manuals */}
-          <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-8 rounded-[2rem] space-y-8 relative overflow-hidden group hover:border-orange/20 transition-all duration-500">
+          <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] space-y-6 sm:space-y-8 relative overflow-hidden group hover:border-orange/20 transition-all duration-500">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange to-transparent"></div>
-            <h3 className="text-2xl font-black text-white flex items-center gap-3 font-title">
+            <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3 font-title">
               <div className="p-2.5 bg-orange/10 rounded-xl border border-orange/20">
                 <BookOpen className="text-orange w-6 h-6" />
               </div>
@@ -216,7 +216,7 @@ export default function StudentDashboard({
                 <motion.div 
                   whileHover={{ y: -5 }}
                   key={idx} 
-                  className="p-6 bg-white/5 border border-white/5 rounded-2xl flex flex-col justify-between space-y-4 hover:bg-white/10 hover:border-orange/20 transition-all cursor-pointer group text-left"
+                  className="p-4 sm:p-6 bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl flex flex-col justify-between space-y-4 hover:bg-white/10 hover:border-orange/20 transition-all cursor-pointer group text-left"
                   onClick={() => book.file_url && window.open(book.file_url.startsWith('storage') ? getStorageUrl(book.file_url) : book.file_url, '_blank')}
                 >
                   <div>
@@ -239,9 +239,9 @@ export default function StudentDashboard({
 
         {/* Right Column: Timeline Updates */}
         <div className="lg:col-span-4 space-y-8">
-          <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-8 rounded-[2rem] space-y-8 relative overflow-hidden group hover:border-orange/20 transition-all duration-500">
+          <motion.div variants={itemVariants} className="bg-lilac-dark/45 border border-white/10 shadow-2xl backdrop-blur-2xl p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] space-y-6 sm:space-y-8 relative overflow-hidden group hover:border-orange/20 transition-all duration-500">
             <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-orange to-transparent"></div>
-            <h3 className="text-xl font-black text-white flex items-center gap-3 font-title">
+            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-3 font-title">
               <div className="p-2.5 bg-orange/10 rounded-xl border border-orange/20">
                 <Calendar className="text-orange w-6 h-6" />
               </div>
