@@ -251,10 +251,10 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-full relative px-6 md:px-8 py-8 h-screen overflow-y-auto custom-scrollbar flex flex-col">
+      <main className="flex-1 w-full max-w-full relative px-4 sm:px-8 py-5 sm:py-8 h-screen overflow-y-auto custom-scrollbar flex flex-col">
         
         {/* Top Header Bar (Responsive: Menu trigger on Mobile, Stats/Profile on right) */}
-        <div className="flex justify-between md:justify-end items-center mb-10 bg-lilac-dark/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg sticky top-0 z-40 w-full">
+        <div className="flex justify-between md:justify-end items-center mb-6 sm:mb-10 bg-lilac-dark/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg sticky top-0 z-40 w-full">
           {/* Mobile Menu Toggle button */}
           <button 
             onClick={() => setIsMobileOpen(true)}
