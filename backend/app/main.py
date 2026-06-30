@@ -27,11 +27,16 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS para Desenvolvimento e Produção
+import os
 allowed_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://aprovei-frontend-production.up.railway.app"
 ]
+
+cors_origins_env = os.getenv("CORS_ALLOWED_ORIGINS")
+if cors_origins_env:
+    allowed_origins.extend([origin.strip() for origin in cors_origins_env.split(",") if origin.strip()])
 
 app.add_middleware(
     CORSMiddleware,
