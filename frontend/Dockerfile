@@ -23,5 +23,5 @@ EXPOSE 3000
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-# Compilar no arranque para injetar as variáveis de ambiente em tempo de execução
-CMD ["sh", "-c", "npm run build && npm run start"]
+# Compilar no arranque para injetar as variáveis de ambiente em tempo de execução (limitando a memória para evitar OOM Killed no Railway)
+CMD ["sh", "-c", "NODE_OPTIONS='--max-old-space-size=450' npm run build && npm run start"]
