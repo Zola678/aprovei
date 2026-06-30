@@ -8,6 +8,16 @@ const api = axios.create({
   },
 });
 
+export const getStorageUrl = (path: string | null | undefined): string => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  // Remove o sufixo /api/v1 ou /api para obter a URL base do backend
+  const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  return `${baseUrl}/${cleanPath}`;
+};
+
 api.interceptors.request.use(async (config) => {
   let token: string | null = null;
 

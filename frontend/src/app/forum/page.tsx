@@ -25,7 +25,7 @@ import {
   MessageSquare 
 } from 'lucide-react';
 import Link from 'next/link';
-import api from '@/lib/api';
+import api, { getStorageUrl } from '@/lib/api';
 
 const CATEGORIES = [
   { id: 'all', name: 'Todos os Debates', icon: 'Sparkles', description: 'Visão geral de todas as discussões da comunidade.' },
@@ -168,9 +168,7 @@ export default function ForumPage() {
   };
 
   const getFullUrl = (url: string) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return `http://localhost:8000/${url}`;
+    return getStorageUrl(url);
   };
 
   return (

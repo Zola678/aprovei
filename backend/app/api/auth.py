@@ -256,7 +256,7 @@ async def get_admin_stats(
     total_teachers_active = teachers_active_res.scalar() or 0
     
     # Contar Professores Pendentes de Aprovação
-    teachers_pending_query = select(func.count(UserModel.id)).where(UserModel.role == "teacher", UserModel.status == "pending_approval")
+    teachers_pending_query = select(func.count(UserModel.id)).where(UserModel.role == "teacher", UserModel.status.in_(["pending_approval", "pending_interview"]))
     teachers_pending_res = await db.execute(teachers_pending_query)
     total_teachers_pending = teachers_pending_res.scalar() or 0
     

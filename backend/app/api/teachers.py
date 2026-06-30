@@ -71,7 +71,7 @@ async def list_pending_teachers(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
         
-    query = select(UserModel).where(UserModel.role == "teacher", UserModel.status == "pending_approval")
+    query = select(UserModel).where(UserModel.role == "teacher", UserModel.status.in_(["pending_approval", "pending_interview"]))
     result = await db.execute(query)
     pending_users = result.scalars().all()
     

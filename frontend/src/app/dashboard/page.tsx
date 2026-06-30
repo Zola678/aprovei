@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
+import api, { getStorageUrl } from '@/lib/api';
 import { BookOpen, Users, Compass, Award, Calendar, LogOut, CheckCircle, FileText, Play, ArrowRight, Activity, TrendingUp, Sparkles, Zap, Trophy, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
@@ -540,7 +540,7 @@ function AdminDashboard({ user }: { user: any }) {
                     <div className="flex gap-4 items-start flex-1">
                       {candidate.photo_url ? (
                         <img 
-                          src={`http://localhost:8000/${candidate.photo_url}`} 
+                          src={getStorageUrl(candidate.photo_url)} 
                           alt={candidate.full_name} 
                           className="w-20 h-20 rounded-2xl object-cover border-2 border-orange/40 shadow-lg shrink-0"
                         />
@@ -549,30 +549,46 @@ function AdminDashboard({ user }: { user: any }) {
                           Sem Foto
                         </div>
                       )}
-                      <div className="space-y-2">
-                        <h4 className="text-xl font-bold text-white">{candidate.full_name}</h4>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-xl font-bold text-white">{candidate.full_name}</h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0 ${
+                            candidate.status === 'pending_approval' 
+                              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
+                              : 'bg-amber-400/10 border border-amber-400/20 text-amber-400'
+                          }`}>
+                            {candidate.status === 'pending_approval' ? 'Entrevista Concluída' : 'Fase de Entrevista'}
+                          </span>
+                        </div>
                         <p className="text-sm text-white/50">{candidate.email} | {candidate.phone}</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm pt-2">
-                          <p className="text-white/70"><strong>Cadeira:</strong> {candidate.profile?.specialty}</p>
-                          <p className="text-white/70"><strong>Preço/Hora:</strong> {candidate.profile?.price_per_hour} Kz</p>
-                          <p className="text-white/70"><strong>Localização:</strong> {candidate.profile?.location}</p>
-                          <p className="text-white/70"><strong>Anos de Exp:</strong> {candidate.years_of_experience} anos</p>
-                        </div>
+                        {candidate.status === 'pending_approval' ? (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm pt-2">
+                              <p className="text-white/70"><strong>Cadeira:</strong> {candidate.profile?.specialty}</p>
+                              <p className="text-white/70"><strong>Preço/Hora:</strong> {candidate.profile?.price_per_hour} Kz</p>
+                              <p className="text-white/70"><strong>Localização:</strong> {candidate.profile?.location}</p>
+                              <p className="text-white/70"><strong>Anos de Exp:</strong> {candidate.years_of_experience} anos</p>
+                            </div>
 
-                        <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-2 mt-4 text-sm text-white/80">
-                          <p><strong>Experiência:</strong> {candidate.experience}</p>
-                          <p><strong>Pretensões:</strong> {candidate.what_intends}</p>
-                        </div>
+                            <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-2 mt-4 text-sm text-white/80">
+                              <p><strong>Experiência:</strong> {candidate.experience}</p>
+                              <p><strong>Pretensões:</strong> {candidate.what_intends}</p>
+                            </div>
 
-                        {candidate.resume_pdf_url && (
-                          <a 
-                            href={`http://localhost:8000/${candidate.resume_pdf_url}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-2 text-orange font-bold text-sm hover:underline pt-2"
-                          >
-                            <FileText className="w-4 h-4" /> Ver Currículo PDF anexado
-                          </a>
+                            {candidate.resume_pdf_url && (
+                              <a 
+                                href={getStorageUrl(candidate.resume_pdf_url)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 text-orange font-bold text-sm hover:underline pt-2"
+                              >
+                                <FileText className="w-4 h-4" /> Ver Currículo PDF anexado
+                              </a>
+                            )}
+                          </>
+                        ) : (
+                          <div className="mt-3 p-3 bg-white/5 rounded-xl border border-white/5 text-sm text-white/60">
+                            Este professor registou-se recentemente e ainda está a preencher os dados da candidatura (Fase de Entrevista).
+                          </div>
                         )}
                       </div>
                     </div>
@@ -655,7 +671,7 @@ function AdminDashboard({ user }: { user: any }) {
                   <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-[1.5rem] p-6 flex gap-4 items-start">
                     {teacher.photo_url ? (
                       <img 
-                        src={`http://localhost:8000/${teacher.photo_url}`} 
+                        src={getStorageUrl(teacher.photo_url)} 
                         alt={teacher.full_name} 
                         className="w-16 h-16 rounded-xl object-cover border border-orange/30 shadow-md shrink-0"
                       />
@@ -950,7 +966,7 @@ function TeacherDashboard({ user }: { user: any }) {
         <div className="flex gap-4 items-center">
           {user.photo_url && (
             <img 
-              src={`http://localhost:8000/${user.photo_url}`} 
+              src={getStorageUrl(user.photo_url)} 
               alt={user.full_name}
               className="w-16 h-16 rounded-full border-2 border-orange/45 object-cover"
             />

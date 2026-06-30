@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import api, { getStorageUrl } from '@/lib/api';
 import { BookOpen, Search, Filter, Upload, FileText, CheckCircle2, AlertCircle, Plus, Eye, Zap, ArrowRight, GraduationCap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -198,8 +198,7 @@ export default function ExamsPage() {
   };
 
   const getFullPdfUrl = (url: string) => {
-    if (url.startsWith('http')) return url;
-    return `http://localhost:8000/${url}`;
+    return getStorageUrl(url);
   };
 
   const isTeacherOrAdmin = user && (user.role === 'teacher' || user.role === 'admin');
