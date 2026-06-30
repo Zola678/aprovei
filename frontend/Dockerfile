@@ -13,6 +13,12 @@ RUN npm install
 # copiar código
 COPY . .
 
+# desativar telemetria
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# rodar o build de produção do Next.js
+RUN npm run build
+
 # expor porta do Next.js
 EXPOSE 3000
 
@@ -20,4 +26,4 @@ EXPOSE 3000
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
