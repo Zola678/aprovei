@@ -549,6 +549,8 @@ function AdminDashboard({ user }: { user: any }) {
                           Sem Foto
                         </div>
                       )}
+                      
+                      <div className="space-y-2 flex-grow">
                         <div className="flex flex-wrap items-center gap-2">
                           <h4 className="text-xl font-bold text-white">{candidate.full_name}</h4>
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0 ${
