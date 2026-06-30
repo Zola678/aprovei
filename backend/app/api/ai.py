@@ -135,7 +135,7 @@ async def generate_ai_response(
                 })
             
             # 3. Fazer a chamada HTTP assíncrona
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
             payload = {
                 "contents": contents,
                 "systemInstruction": {

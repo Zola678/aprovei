@@ -33,7 +33,7 @@ class LunarAI:
     def create_default_config(self):
         self.config = {
             "gemini_api_key": settings.GEMINI_API_KEY or "",
-            "model_online": "gemini-1.5-flash",
+            "model_online": "gemini-2.5-flash",
             "model_offline": "qwen2.5-coder:1.5b",
             "voice_enabled": False
         }
@@ -104,7 +104,6 @@ class LunarAI:
         payload = {
             "contents": contents,
             "systemInstruction": {
-                "role": "system",
                 "parts": [{"text": self.format_system_msg()}]
             },
             "generationConfig": {
