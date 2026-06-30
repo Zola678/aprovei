@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from typing import List
 from pydantic import BaseModel
 from app.core.database import get_db
-from app.models.models import User, AIChatSession, AIChatMessage
+from app.models.models import User, AIChatSession, AIChatMessage, Exam as ExamModel
 from app.api.deps import get_current_user
 from app.core.config import settings
 import asyncio
@@ -19,6 +19,9 @@ class AIChatMessageCreate(BaseModel):
 
 class AIChatSessionCreate(BaseModel):
     title: str = "Nova Conversa de Estudos"
+
+class ExamChallengeCreate(BaseModel):
+    exam_key: str
 
 class AIChatMessageResponse(BaseModel):
     id: int
@@ -40,16 +43,25 @@ from app.core.lunar import LunarAI
 
 lunar_ai = LunarAI()
 
-async def generate_ai_response(user_input: str, history: List[AIChatMessage], educational_level: str) -> str:
+async def generate_ai_response(
+    user_input: str,
+    history: List[AIChatMessage],
+    educational_level: str,
+    session_title: str = "",
+    answer_key: str | None = None,
+    questions_text: str | None = None
+) -> str:
     """
     Gera uma resposta da IA utilizando o motor LUNAR local de forma nativa.
     """
+    is_challenge = session_title.startswith("Desafio:")
+    
     # 1. Tentar contactar a IA LUNAR nativa
     try:
-        prompt_with_context = f"[Contexto de Estudos Aprovei: {educational_level}] {user_input}"
+        prompt_with_context = f"[Contexto de Estudos Aprovei: {educational_level}] [Desafio: {session_title if is_challenge else 'Nenhum'}] [Gabarito: {answer_key or 'Nenhum'}] {user_input}"
         lunar_resp = await asyncio.to_thread(lunar_ai.run, prompt_with_context)
         # Se for executada com sucesso e não for o aviso offline estático, devolve a resposta
-        if lunar_resp and not lunar_resp.startswith("LUNAR CORE EXCEPTION"):
+        if lunar_resp and not lunar_resp.startswith("LUNAR CORE EXCEPTION") and not lunar_resp.startswith("À sua disposição, Senhor. Contudo"):
             return lunar_resp
     except Exception as e:
         print(f"Exceção ao chamar a Lunar AI de forma nativa: {e}")
@@ -58,22 +70,42 @@ async def generate_ai_response(user_input: str, history: List[AIChatMessage], ed
     
     if api_key:
         try:
-            # 1. Definir a instrução de sistema com base no nível educacional
-            level_desc = (
-                "Ensino Médio (10ª à 12ª classe, preparando para institutos técnicos como ITEL, IMEL, IPIL, INP e Liceus)" 
-                if educational_level == "high_school" 
-                else "Acesso Universitário (preparação intensiva para exames da UAN, ISUTIC, UMN, UKB, etc.)"
-            )
-            
-            system_prompt = (
-                "Tu és a 'APROVEI IA', o tutor pessoal de inteligência artificial integrado na plataforma APROVEI. "
-                "O teu objetivo principal é apoiar estudantes angolanos a alcançarem o sucesso escolar e a entrarem no ensino superior. "
-                f"O nível escolar atual deste estudante é: {level_desc}. "
-                "Deves responder sempre em português (Angola/Portugal), com um tom motivador, confiante, acolhedor e simples. "
-                "Explica teorias e resoluções passo a passo, usando exemplos práticos angolanos sempre que apropriado. "
-                "Usa formatação Markdown para destacar fórmulas (ex: F = m * a) e termos chave, tornando a leitura fluida e interativa. "
-                "Foca a resposta no contexto curricular angolano."
-            )
+            # 1. Definir a instrução de sistema com base no nível educacional ou modo desafio
+            if is_challenge:
+                system_prompt = (
+                    "Tu és a 'APROVEI IA' operando em MODO DESAFIO/SIMULADO de exames em Angola. "
+                    f"O estudante está a realizar um simulado focado no Exame: {session_title}. "
+                    "O teu papel é ser o examinador oficial deste teste. "
+                )
+                if questions_text:
+                    system_prompt += f"\nAs perguntas oficiais deste exame são:\n{questions_text}\n"
+                else:
+                    system_prompt += "\nComo não temos as perguntas originais estruturadas, deves propor perguntas de escolha múltipla ou desenvolvimento realistas que simulem exatamente este exame.\n"
+                
+                if answer_key:
+                    system_prompt += f"\nO gabarito oficial / chave de resposta é:\n{answer_key}\nUsa este gabarito para avaliar as respostas do aluno de forma estrita.\n"
+                
+                system_prompt += (
+                    "Deves propor uma pergunta de cada vez e aguardar pela resposta do estudante. "
+                    "Quando o estudante responder, avalia a resposta dele de forma clara com base na chave da prova, explica a resolução de forma pedagógica (mostrando a fórmula e os passos se ele errar), e depois apresenta o próximo desafio. "
+                    "Mantenha um tom motivador e responda em português de Angola."
+                )
+            else:
+                level_desc = (
+                    "Ensino Médio (10ª à 12ª classe, preparando para institutos técnicos como ITEL, IMEL, IPIL, INP e Liceus)" 
+                    if educational_level == "high_school" 
+                    else "Acesso Universitário (preparação intensiva para exames da UAN, ISUTIC, UMN, UKB, etc.)"
+                )
+                
+                system_prompt = (
+                    "Tu és a 'APROVEI IA', o tutor pessoal de inteligência artificial integrado na plataforma APROVEI. "
+                    "O teu objetivo principal é apoiar estudantes angolanos a alcançarem o sucesso escolar e a entrarem no ensino superior. "
+                    f"O nível escolar atual deste estudante é: {level_desc}. "
+                    "Deves responder sempre em português (Angola/Portugal), com um tom motivador, confiante, acolhedor e simples. "
+                    "Explica teorias e resoluções passo a passo, usando exemplos práticos angolanos sempre que apropriado. "
+                    "Usa formatação Markdown para destacar fórmulas (ex: F = m * a) e termos chave, tornando a leitura fluida e interativa. "
+                    "Foca a resposta no contexto curricular angolano."
+                )
             
             # 2. Formatar o histórico para o formato aceitado pela API do Gemini
             contents = []
@@ -124,6 +156,101 @@ async def generate_ai_response(user_input: str, history: List[AIChatMessage], ed
             print(f"Exceção ao ligar à API do Gemini: {str(e)}")
             
     # --- MOTOR DE RESPOSTA LOCAL DE FALLBACK (Altamente robusto e contextualizado) ---
+    if is_challenge:
+        import re
+        
+        # Parse questions
+        questions = []
+        if questions_text:
+            parts = re.split(r'(?i)\n*(?=quest(?:ã|a)o\s*\d+[:\s\-])', questions_text)
+            for p in parts:
+                p_strip = p.strip()
+                if p_strip:
+                    questions.append(p_strip)
+        
+        if not questions and questions_text:
+            questions = [q.strip() for q in questions_text.split("\n\n") if q.strip()]
+            
+        if not questions:
+            questions = [
+                "Questão 1: Se f(x) = x^2 - 4x + 3, qual é o valor mínimo de f(x)?\nA) -1\nB) 0\nC) 1\nD) 3",
+                "Questão 2: Qual é o limite de (sen(5x))/x quando x tende a 0?\nA) 0\nB) 1\nC) 5\nD) Infinito",
+                "Questão 3: Resolva a equação logarítmica log2(x) + log2(x-2) = 3. Qual é o valor de x?\nA) 4\nB) 2\nC) 8\nD) 6",
+                "Questão 4: Uma progressão aritmética (PA) tem o primeiro termo a1 = 3 e a razão r = 4. Qual é o décimo termo a10?\nA) 39\nB) 43\nC) 35\nD) 41"
+            ]
+            
+        # Parse answer key
+        key_dict = {}
+        if answer_key:
+            pairs = re.findall(r'(\d+)\s*[-:]\s*([A-D|a-d])', answer_key)
+            for q_num, ans in pairs:
+                key_dict[int(q_num)] = ans.upper()
+                
+        if not key_dict:
+            key_dict = {1: 'A', 2: 'C', 3: 'A', 4: 'A'}
+            
+        user_history = [m for m in history if m.sender == "user"]
+        total_user_inputs = len(user_history) + 1
+        
+        def check_answer(u_ans: str, c_ans: str) -> bool:
+            clean_ans = u_ans.strip().upper()
+            if clean_ans == c_ans:
+                return True
+            letters = re.findall(r'\b([A-D])\b', clean_ans)
+            if letters and letters[0] == c_ans:
+                return True
+            if clean_ans.startswith(c_ans):
+                return True
+            return False
+
+        if total_user_inputs == 1:
+            return (
+                f"Excelente! Iniciamos o **MODO DESAFIO** interativo da prova.\n\n"
+                f"Aqui está o teu primeiro desafio:\n\n"
+                f"{questions[0]}\n\n"
+                f"Responda com a letra da opção que consideras correta."
+            )
+            
+        prev_question_idx = total_user_inputs - 2
+        
+        if prev_question_idx < len(questions):
+            q_num = prev_question_idx + 1
+            correct_ans = key_dict.get(q_num, 'A')
+            is_correct = check_answer(user_input, correct_ans)
+            
+            feedback = ""
+            if is_correct:
+                feedback = f"✅ **Correto!** A tua resposta para a Questão {q_num} está certíssima. Parabéns!\n\n"
+            else:
+                feedback = f"❌ **Incorreto.** Para a Questão {q_num}, a opção correta era a **{correct_ans}**.\n\n"
+                
+            next_question_idx = prev_question_idx + 1
+            if next_question_idx < len(questions):
+                return (
+                    f"{feedback}"
+                    f"**Próximo Desafio (Questão {next_question_idx + 1}):**\n\n"
+                    f"{questions[next_question_idx]}\n\n"
+                    f"Qual é a tua resposta?"
+                )
+            else:
+                correct_count = 0
+                all_inputs = [m.content for m in user_history] + [user_input]
+                for idx, ans in enumerate(all_inputs[1:]):
+                    c_num = idx + 1
+                    c_ans = key_dict.get(c_num, 'A')
+                    if check_answer(ans, c_ans):
+                        correct_count += 1
+                        
+                percentage = int((correct_count / len(questions)) * 100)
+                
+                return (
+                    f"{feedback}"
+                    f"🏆 **Desafio Concluído!** 🎉\n\n"
+                    f"A tua pontuação final é: **{correct_count} / {len(questions)}** acertos (**{percentage}%**).\n\n"
+                    f"{'Excelente desempenho! Estás totalmente preparado para os exames! ⭐' if percentage >= 75 else 'Bom esforço! Continua a estudar e tenta novamente para melhorar a tua pontuação.'}\n\n"
+                    f"Podes iniciar um novo desafio com outra chave de prova ou voltar para o menu principal de estudos."
+                )
+
     lower_input = user_input.lower()
     
     if "matemática" in lower_input or "bhaskara" in lower_input or "equação" in lower_input or "limite" in lower_input or "derivada" in lower_input:
@@ -147,7 +274,7 @@ async def generate_ai_response(user_input: str, history: List[AIChatMessage], ed
         if educational_level == "high_school":
             return (
                 "Claro! Na Física do Ensino Médio, a Dinâmica é rainha. "
-                "A **Segunda Lei de Newton** diz que a força resultante aplicada num corpo é igual ao produto da sua massa pela aceleração:\n\n"
+                "A **Segunda Lei de Newton** diz que a força resultant aplicada num corpo é igual ao produto da sua massa pela aceleração:\n\n"
                 "**F = m * a**\n\n"
                 "Nas disciplinas técnicas do ITEL e IPIL, estudamos isto em polias e planos com atrito. Queres fazer um exercício simples sobre forças?"
             )
@@ -160,6 +287,7 @@ async def generate_ai_response(user_input: str, history: List[AIChatMessage], ed
                 "*   A força de atrito será: **Fat = μ * Py = μ * P * cos(θ)**.\n\n"
                 "Queres resolver uma questão típica de exame de acesso sobre dinâmica?"
             )
+ 
 
     if "itel" in lower_input or "imel" in lower_input or "ipil" in lower_input or "ensino médio" in lower_input:
         return (
@@ -258,11 +386,25 @@ async def send_message(
     history_result = await db.execute(history_query)
     history = history_result.scalars().all()[:-1] # Excluir a última mensagem que acabamos de salvar para passá-la como 'user_input'
     
+    # 3.5 Buscar informações da prova se for uma sessão de desafio
+    answer_key = None
+    questions_text = None
+    if session.exam_id:
+        exam_query = select(ExamModel).where(ExamModel.id == session.exam_id)
+        exam_res = await db.execute(exam_query)
+        exam = exam_res.scalars().first()
+        if exam:
+            answer_key = exam.answer_key
+            questions_text = exam.questions_text
+
     # 4. Chamar a IA (Gemini ou Fallback) de forma assíncrona
     ai_response_content = await generate_ai_response(
         user_input=msg_data.content,
         history=history,
-        educational_level=current_user.educational_level
+        educational_level=current_user.educational_level,
+        session_title=session.title,
+        answer_key=answer_key,
+        questions_text=questions_text
     )
     
     # 5. Guardar e retornar a resposta da IA
@@ -292,3 +434,80 @@ async def get_session_messages(
     messages = messages_result.scalars().all()
     
     return messages
+
+@router.post("/sessions/exam-challenge", response_model=AIChatSessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_exam_challenge_session(
+    challenge_data: ExamChallengeCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Cria uma nova sessão de chat focada num desafio de prova (exam key)"""
+    exam_key = challenge_data.exam_key
+    
+    # 1. Procurar a prova correspondente à chave
+    parts = exam_key.upper().split("-")
+    exam = None
+    
+    # Tenta procurar por ID se for número
+    if exam_key.isdigit():
+        query = select(ExamModel).where(ExamModel.id == int(exam_key))
+        res = await db.execute(query)
+        exam = res.scalars().first()
+        
+    if not exam and len(parts) >= 3:
+        univ = parts[0]
+        subj_prefix = parts[1]
+        year_str = parts[2]
+        # Filtrar por universidade e ano
+        query = select(ExamModel).where(
+            ExamModel.university == univ,
+            ExamModel.year == int(year_str) if year_str.isdigit() else ExamModel.year
+        )
+        res = await db.execute(query)
+        exams = res.scalars().all()
+        # Filtrar por assunto
+        for e in exams:
+            if e.subject.upper().startswith(subj_prefix) or subj_prefix in e.subject.upper():
+                exam = e
+                break
+                
+    if not exam:
+        # Busca genérica
+        query = select(ExamModel).where(
+            (ExamModel.university.ilike(f"%{exam_key}%")) | 
+            (ExamModel.subject.ilike(f"%{exam_key}%"))
+        )
+        res = await db.execute(query)
+        exam = res.scalars().first()
+        
+    if not exam:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Não encontramos nenhuma prova correspondente à chave '{exam_key}'. Verifica a chave e tenta novamente."
+        )
+        
+    # 2. Criar a sessão com título especial
+    title = f"Desafio: {exam.university} - {exam.subject} ({exam.year})"
+    new_session = AIChatSession(user_id=current_user.id, title=title, exam_id=exam.id)
+    db.add(new_session)
+    await db.commit()
+    await db.refresh(new_session)
+    
+    # 3. Criar mensagem de boas-vindas do examinador
+    welcome_text = (
+        f"Olá! Ativei o **MODO DESAFIO** para a prova **{exam.university} - {exam.subject} ({exam.year})**.\n\n"
+        f"Esta prova de **{exam.subject}** foi aplicada no ano de **{exam.year}**. "
+        "Vou avaliar os teus conhecimentos com um simulado interativo de perguntas. "
+        "Apresentarei uma questão de cada vez e darei feedback após cada resposta.\n\n"
+        "Estás pronto para começar? Responde 'Sim' ou 'Começar'!"
+    )
+    
+    welcome_msg = AIChatMessage(
+        session_id=new_session.id,
+        sender="ai",
+        content=welcome_text
+    )
+    db.add(welcome_msg)
+    await db.commit()
+    
+    return new_session

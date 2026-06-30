@@ -35,6 +35,8 @@ export default function ExamsPage() {
     year: new Date().getFullYear(),
     category: 'acesso',
     description: '',
+    answer_key: '',
+    questions_text: '',
     grade: 10, // For high school
     title: ''  // For high school
   });
@@ -133,6 +135,8 @@ export default function ExamsPage() {
         formData.append("year", String(uploadData.year));
         formData.append("category", uploadData.category);
         formData.append("description", uploadData.description);
+        formData.append("answer_key", uploadData.answer_key || "");
+        formData.append("questions_text", uploadData.questions_text || "");
 
         await api.post('/exams', formData, {
           headers: {
@@ -151,6 +155,8 @@ export default function ExamsPage() {
         year: new Date().getFullYear(),
         category: 'acesso',
         description: '',
+        answer_key: '',
+        questions_text: '',
         grade: 10,
         title: ''
       });
@@ -418,6 +424,32 @@ export default function ExamsPage() {
                 />
               </div>
 
+              {activeModule !== 'high_school' && (
+                <>
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Chave de Respostas / Gabarito Oficial (Opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: 1-A, 2-C, 3-A, 4-A"
+                      className="w-full px-4 py-3 bg-lilac-dark/55 border border-lilac-light/20 rounded-xl focus:border-orange focus:ring-2 focus:ring-orange/20 outline-none text-sm transition-all text-white font-semibold shadow-sm placeholder:text-white/30"
+                      value={uploadData.answer_key}
+                      onChange={e => setUploadData({ ...uploadData, answer_key: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Texto das Questões para Desafios IA (Opcional)</label>
+                    <textarea
+                      placeholder="Questão 1: Se f(x) = x^2 - 4x + 3, qual é o valor mínimo de f(x)?&#10;A) -1&#10;B) 0&#10;C) 1&#10;D) 3&#10;&#10;Questão 2: ..."
+                      rows={5}
+                      className="w-full px-4 py-3 bg-lilac-dark/55 border border-lilac-light/20 rounded-xl focus:border-orange focus:ring-2 focus:ring-orange/20 outline-none text-sm transition-all text-white font-semibold shadow-sm placeholder:text-white/30 resize-y"
+                      value={uploadData.questions_text}
+                      onChange={e => setUploadData({ ...uploadData, questions_text: e.target.value })}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="md:col-span-2 space-y-1">
                 <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Arquivo PDF</label>
                 <input
@@ -571,126 +603,145 @@ export default function ExamsPage() {
             </div>
           </div>
         ) : (
-          items.map((item: any) => (
-            <motion.div 
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-              }}
-              whileHover={{ y: -8 }}
-              key={item.id} 
-              className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-sm hover:border-orange/40 transition-all duration-300 flex flex-col justify-between space-y-8 relative overflow-hidden group cursor-pointer p-8"
-            >
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-orange/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-              
-              {activeModule !== 'high_school' && item.solved && (
-                <div className="absolute top-0 right-0 bg-green-500 text-lilac-dark text-xs px-4 py-1.5 font-bold rounded-bl-2xl flex items-center gap-1.5 shadow-md">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Resolvida</span>
-                </div>
-              )}
-              
-              <div className="space-y-4 relative z-10 text-left">
-                <div className="flex flex-wrap gap-2">
-                  <span className="bg-orange/10 text-orange border border-orange/20 text-xs px-3 py-1.5 rounded-xl font-bold">
-                    {activeModule === 'high_school' ? `${item.grade}ª Classe` : item.university}
-                  </span>
-                  <span className="bg-lilac-dark/60 text-white/70 border border-lilac-light/20 text-xs px-3 py-1.5 rounded-xl font-bold uppercase">
-                    {activeModule === 'high_school' ? item.subject : (item.category === 'acesso' ? 'Acesso' : 'Especial')}
-                  </span>
-                  {activeModule !== 'high_school' && (
-                    <span className="bg-orange/10 text-orange border border-orange/20 text-xs px-3 py-1.5 rounded-xl font-bold">
-                      {item.year}
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black text-white group-hover:text-orange transition-colors leading-tight font-title">
-                    {activeModule === 'high_school' ? item.title : item.subject}
-                  </h3>
-                </div>
-                {item.description && (
-                  <p className="text-white/70 font-medium text-sm leading-relaxed">{item.description}</p>
-                )}
-              </div>
+          items.map((item: any) => {
+            const examKey = activeModule !== 'high_school' 
+              ? `${item.university}-${item.subject.substring(0, 3).toUpperCase()}-${item.year}`.replace(/\s+/g, '').toUpperCase()
+              : `M${item.grade}-${item.subject.substring(0, 3).toUpperCase()}-${item.id}`.replace(/\s+/g, '').toUpperCase();
 
-              <div className="space-y-4 pt-4 border-t border-white/10 relative z-10">
-                <div className="flex gap-3">
-                  <a
-                    href={getFullPdfUrl(activeModule === 'high_school' ? item.file_url : item.pdf_url)}
-                    target="_blank"
-                    className="flex-1 bg-lilac-dark/60 text-white/80 px-4 py-3.5 rounded-xl font-bold hover:bg-lilac-dark/80 hover:border-orange/40 hover:text-orange transition-all text-sm flex items-center justify-center gap-2 border border-lilac-light/25 shadow-sm"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Ver PDF</span>
-                  </a>
-                  
-                  {activeModule !== 'high_school' && (
-                    item.solved ? (
-                      <a
-                        href={getFullPdfUrl(item.solution_pdf_url)}
-                        target="_blank"
-                        className="flex-1 bg-green-500/15 border border-green-500/30 text-green-400 px-4 py-3.5 rounded-xl font-bold hover:bg-green-500 hover:text-lilac-dark transition-all text-sm flex items-center justify-center gap-2 shadow-sm"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Resolução</span>
-                      </a>
-                    ) : (
-                      <button
-                        disabled
-                        className="flex-1 bg-lilac-dark/40 text-white/30 px-4 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed border border-lilac-light/15"
-                      >
-                        Pendente
-                      </button>
-                    )
-                  )}
-                </div>
-
-                {/* Resolução form for teachers on University Exams */}
-                {activeModule !== 'high_school' && isTeacherOrAdmin && !item.solved && (
-                  <div className="pt-2">
-                    <button
-                      onClick={() => setSolvingExamId(solvingExamId === item.id ? null : item.id)}
-                      className="text-xs text-orange font-bold hover:text-orange/80 flex items-center gap-1.5 transition-colors"
-                    >
-                      <Upload className="w-4 h-4" />
-                      <span>{solvingExamId === item.id ? 'Fechar' : 'Carregar Resolução'}</span>
-                    </button>
-
-                    <AnimatePresence>
-                      {solvingExamId === item.id && (
-                        <motion.form 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
-                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                          onSubmit={(e) => handleSolveSubmit(e, item.id)} 
-                          className="space-y-3 bg-lilac-dark/50 p-4 rounded-xl border border-lilac-light/20 overflow-hidden shadow-sm text-left"
-                        >
-                          <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">PDF da Resolução</label>
-                          <div className="flex gap-2">
-                            <input
-                              type="file"
-                              required
-                              accept="application/pdf"
-                              className="text-xs flex-1 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange/10 file:text-orange file:cursor-pointer text-white"
-                              onChange={e => setSolutionFile(e.target.files ? e.target.files[0] : null)}
-                            />
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="bg-orange text-lilac-dark text-xs px-4 py-2 rounded-lg font-bold hover:bg-orange/80 disabled:bg-lilac-dark/40 transition-colors shadow-sm"
-                            >
-                              Enviar
-                            </button>
-                          </div>
-                        </motion.form>
-                      )}
-                    </AnimatePresence>
+            return (
+              <motion.div 
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+                }}
+                whileHover={{ y: -8 }}
+                key={item.id} 
+                className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-sm hover:border-orange/40 transition-all duration-300 flex flex-col justify-between space-y-8 relative overflow-hidden group cursor-pointer p-8"
+              >
+                <div className="absolute -right-10 -top-10 w-32 h-32 bg-orange/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                
+                {activeModule !== 'high_school' && item.solved && (
+                  <div className="absolute top-0 right-0 bg-green-500 text-lilac-dark text-xs px-4 py-1.5 font-bold rounded-bl-2xl flex items-center gap-1.5 shadow-md">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Resolvida</span>
                   </div>
                 )}
-              </div>
-            </motion.div>
-          ))
+                
+                <div className="space-y-4 relative z-10 text-left">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="bg-orange/10 text-orange border border-orange/20 text-xs px-3 py-1.5 rounded-xl font-bold">
+                      {activeModule === 'high_school' ? `${item.grade}ª Classe` : item.university}
+                    </span>
+                    <span className="bg-lilac-dark/60 text-white/70 border border-lilac-light/20 text-xs px-3 py-1.5 rounded-xl font-bold uppercase">
+                      {activeModule === 'high_school' ? item.subject : (item.category === 'acesso' ? 'Acesso' : 'Especial')}
+                    </span>
+                    {activeModule !== 'high_school' && (
+                      <span className="bg-orange/10 text-orange border border-orange/20 text-xs px-3 py-1.5 rounded-xl font-bold">
+                        {item.year}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-white group-hover:text-orange transition-colors leading-tight font-title">
+                      {activeModule === 'high_school' ? item.title : item.subject}
+                    </h3>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-white/40 uppercase">Chave:</span>
+                      <span className="text-[10px] font-mono font-bold text-orange px-2 py-0.5 rounded bg-orange/15 select-all border border-orange/20">{examKey}</span>
+                    </div>
+                  </div>
+                  {item.description && (
+                    <p className="text-white/70 font-medium text-sm leading-relaxed">{item.description}</p>
+                  )}
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-white/10 relative z-10">
+                  <div className="flex gap-3">
+                    <a
+                      href={getFullPdfUrl(activeModule === 'high_school' ? item.file_url : item.pdf_url)}
+                      target="_blank"
+                      className="flex-1 bg-lilac-dark/60 text-white/80 px-4 py-3.5 rounded-xl font-bold hover:bg-lilac-dark/80 hover:border-orange/40 hover:text-orange transition-all text-sm flex items-center justify-center gap-2 border border-lilac-light/25 shadow-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Ver PDF</span>
+                    </a>
+                    
+                    {activeModule !== 'high_school' && (
+                      item.solved ? (
+                        <a
+                          href={getFullPdfUrl(item.solution_pdf_url)}
+                          target="_blank"
+                          className="flex-1 bg-green-500/15 border border-green-500/30 text-green-400 px-4 py-3.5 rounded-xl font-bold hover:bg-green-500 hover:text-lilac-dark transition-all text-sm flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Resolução</span>
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="flex-1 bg-lilac-dark/40 text-white/30 px-4 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed border border-lilac-light/15"
+                        >
+                          Pendente
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  {/* AI Challenge shortcut button */}
+                  <button
+                    onClick={() => router.push(`/ai-chat?challenge=${examKey}`)}
+                    className="w-full bg-orange text-lilac-dark px-4 py-3.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 hover:bg-orange/80 shadow-md transition-all active:scale-[0.98]"
+                  >
+                    <Zap className="w-4 h-4 text-lilac-dark fill-current" />
+                    <span>Desafiar IA nesta Prova 🎯</span>
+                  </button>
+
+                  {/* Resolução form for teachers on University Exams */}
+                  {activeModule !== 'high_school' && isTeacherOrAdmin && !item.solved && (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => setSolvingExamId(solvingExamId === item.id ? null : item.id)}
+                        className="text-xs text-orange font-bold hover:text-orange/80 flex items-center gap-1.5 transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>{solvingExamId === item.id ? 'Fechar' : 'Carregar Resolução'}</span>
+                      </button>
+
+                      <AnimatePresence>
+                        {solvingExamId === item.id && (
+                          <motion.form 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
+                            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                            onSubmit={(e) => handleSolveSubmit(e, item.id)} 
+                            className="space-y-3 bg-lilac-dark/50 p-4 rounded-xl border border-lilac-light/20 overflow-hidden shadow-sm text-left"
+                          >
+                            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">PDF da Resolução</label>
+                            <div className="flex gap-2">
+                              <input
+                                type="file"
+                                required
+                                accept="application/pdf"
+                                className="text-xs flex-1 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange/10 file:text-orange file:cursor-pointer text-white"
+                                onChange={e => setSolutionFile(e.target.files ? e.target.files[0] : null)}
+                              />
+                              <button
+                                type="submit"
+                                disabled={loading}
+                                className="bg-orange text-lilac-dark text-xs px-4 py-2 rounded-lg font-bold hover:bg-orange/80 disabled:bg-lilac-dark/40 transition-colors shadow-sm"
+                              >
+                                Enviar
+                              </button>
+                            </div>
+                          </motion.form>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })
         )}
       </motion.div>
     </div>

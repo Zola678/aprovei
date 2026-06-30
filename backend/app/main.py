@@ -25,10 +25,16 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS para Produção
+# CORS para Desenvolvimento e Produção
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://aprovei-frontend-production.up.railway.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Ajustar em produção
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -97,18 +103,36 @@ def health_check():
 
 @app.on_event("startup")
 async def on_startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        
-        # SQL para migrar a tabela de utilizadores com os novos campos de entrevista/status
+    max_retries = 5
+    retry_delay = 5
+    for attempt in range(1, max_retries + 1):
         try:
-            from sqlalchemy import text
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url VARCHAR(255)"))
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'"))
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS experience TEXT"))
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS years_of_experience INTEGER"))
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS what_intends TEXT"))
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS resume_pdf_url VARCHAR(255)"))
+            logger.info(f"Tentando conectar ao banco de dados (Tentativa {attempt}/{max_retries})...")
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+                
+                # SQL para migrar a tabela de utilizadores com os novos campos de entrevista/status
+                try:
+                    from sqlalchemy import text
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url VARCHAR(255)"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS experience TEXT"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS years_of_experience INTEGER"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS what_intends TEXT"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS resume_pdf_url VARCHAR(255)"))
+                    
+                    # Migração para exames e desafios IA
+                    await conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS answer_key TEXT"))
+                    await conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS questions_text TEXT"))
+                    await conn.execute(text("ALTER TABLE ai_chat_sessions ADD COLUMN IF NOT EXISTS exam_id INTEGER REFERENCES exams(id)"))
+                except Exception as e:
+                    logger.error(f"Erro ao rodar migração de tabelas no startup: {e}")
+            logger.info("Banco de dados conectado e inicializado com sucesso!")
+            break
         except Exception as e:
-            logger.error(f"Erro ao rodar migração de tabelas no startup: {e}")
+            logger.error(f"Erro de conexao com o banco de dados na tentativa {attempt}: {e}")
+            if attempt == max_retries:
+                logger.error("Nao foi possivel conectar ao banco de dados após várias tentativas. Continuando inicialização do servidor...")
+            else:
+                await asyncio.sleep(retry_delay)
 

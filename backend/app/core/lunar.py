@@ -126,12 +126,10 @@ class LunarAI:
             return None
 
     def talk_ollama(self, prompt):
-        in_docker = os.path.exists("/.dockerenv")
-        urls = []
-        if in_docker:
-            urls.append("http://host.docker.internal:11434/api/chat")
-        urls.append("http://localhost:11434/api/chat")
-        urls.append("http://127.0.0.1:11434/api/chat")
+        is_docker = os.path.exists('/.dockerenv')
+        urls = ["http://localhost:11434/api/chat", "http://127.0.0.1:11434/api/chat"]
+        if is_docker:
+            urls.insert(0, "http://host.docker.internal:11434/api/chat")
         for host_url in urls:
             messages = [
                 {"role": "system", "content": self.format_system_msg()},

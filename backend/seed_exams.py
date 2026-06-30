@@ -13,7 +13,9 @@ async def seed_exams():
             category="acesso",
             solved=True,
             solution_pdf_url="https://exemplo.com/resolucoes/uan_matematica_2023_resolvida.pdf",
-            description="Exame de Acesso de Matemática da Universidade Agostinho Neto, variante A e B."
+            description="Exame de Acesso de Matemática da Universidade Agostinho Neto, variante A e B.",
+            answer_key="1-A, 2-C, 3-A, 4-A",
+            questions_text="Questão 1: Se f(x) = x^2 - 4x + 3, qual é o valor mínimo de f(x)?\nA) -1\nB) 0\nC) 1\nD) 3\n\nQuestão 2: Qual é o limite de (sen(5x))/x quando x tende a 0?\nA) 0\nB) 1\nC) 5\nD) Infinito\n\nQuestão 3: Resolva a equação logarítmica log2(x) + log2(x-2) = 3. Qual é o valor de x?\nA) 4\nB) 2\nC) 8\nD) 6\n\nQuestão 4: Uma progressão aritmética (PA) tem o primeiro termo a1 = 3 e a razão r = 4. Qual é o décimo termo a10?\nA) 39\nB) 43\nC) 35\nD) 41"
         ),
         Exam(
             university="ISUTIC",

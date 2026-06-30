@@ -23,6 +23,8 @@ async def upload_exam(
     year: int = Form(...),
     category: str = Form(...),
     description: str = Form(None),
+    answer_key: str = Form(None),
+    questions_text: str = Form(None),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
@@ -51,7 +53,9 @@ async def upload_exam(
         category=category,
         description=description,
         pdf_url=file_path,
-        solved=False
+        solved=False,
+        answer_key=answer_key,
+        questions_text=questions_text
     )
     
     db.add(new_exam)

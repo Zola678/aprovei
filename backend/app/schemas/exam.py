@@ -9,6 +9,8 @@ class ExamBase(BaseModel):
     solved: bool = False
     solution_pdf_url: str | None = None
     description: str | None = None
+    answer_key: str | None = None
+    questions_text: str | None = None
 
 class ExamCreate(ExamBase):
     pass

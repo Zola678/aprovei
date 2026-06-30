@@ -73,15 +73,15 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden w-full m-0 p-0 pt-28 pb-12">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-x-hidden overflow-y-auto w-full m-0 p-0 pt-28 pb-12">
       {/* Background decorations */}
       <div className="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] bg-orange/10 rounded-full filter blur-[120px] -z-10 pointer-events-none animate-pulse-slow"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-lilac-light/15 rounded-full filter blur-[150px] -z-10 pointer-events-none animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
       
-      <div className="w-full max-w-7xl h-[100vh] md:h-[95vh] md:rounded-[3rem] overflow-hidden flex flex-col md:flex-row-reverse bg-lilac-base/15 border border-lilac-light/20 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative z-10">
+      <div className="w-full max-w-7xl min-h-[85vh] h-auto md:rounded-[3rem] overflow-visible flex flex-col md:flex-row-reverse bg-lilac-base/15 border border-lilac-light/20 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative z-10 py-6 md:py-0">
         
         {/* Right Form Side */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-12 lg:p-20 relative overflow-y-auto custom-scrollbar">
+        <div className="w-full md:w-1/2 flex flex-col justify-start md:justify-center p-8 md:p-12 lg:p-16 relative overflow-y-auto custom-scrollbar">
           <motion.div 
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -172,12 +172,12 @@ export default function RegisterPage() {
                     <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Eu sou...</label>
                     <div className="relative">
                       <select
-                        className="w-full px-4 py-3.5 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white cursor-pointer appearance-none shadow-sm"
+                        className="w-full px-4 py-3.5 bg-[#18111e] border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white cursor-pointer appearance-none shadow-sm"
                         value={formData.role}
                         onChange={e => setFormData({ ...formData, role: e.target.value })}
                       >
-                        <option value="student" className="bg-lilac-dark text-white">Estudante</option>
-                        <option value="teacher" className="bg-lilac-dark text-white">Professor</option>
+                        <option value="student" className="bg-[#18111e] text-white">Estudante</option>
+                        <option value="teacher" className="bg-[#18111e] text-white">Professor</option>
                       </select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/60">
                         <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -207,12 +207,12 @@ export default function RegisterPage() {
                   <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Nível de Ensino</label>
                   <div className="relative">
                     <select
-                      className="w-full px-4 py-3.5 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white cursor-pointer appearance-none shadow-sm"
+                      className="w-full px-4 py-3.5 bg-[#18111e] border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white cursor-pointer appearance-none shadow-sm"
                       value={formData.educational_level}
                       onChange={e => setFormData({ ...formData, educational_level: e.target.value })}
                     >
-                      <option value="university_access" className="bg-lilac-dark text-white">Acesso Universitário (Preparação)</option>
-                      <option value="high_school" className="bg-lilac-dark text-white">Ensino Médio (10ª à 12ª Classe)</option>
+                      <option value="university_access" className="bg-[#18111e] text-white">Acesso Universitário (Preparação)</option>
+                      <option value="high_school" className="bg-[#18111e] text-white">Ensino Médio (10ª à 12ª Classe)</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/60">
                       <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>

@@ -39,6 +39,8 @@ class Exam(Base):
     solved = Column(Boolean, default=False)
     solution_pdf_url = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    answer_key = Column(String, nullable=True)  # Gabarito oficial / chave de resposta
+    questions_text = Column(String, nullable=True) # Texto das perguntas da prova
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class TeacherProfile(Base):
@@ -118,10 +120,12 @@ class AIChatSession(Base):
     __tablename__ = "ai_chat_sessions"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    exam_id = Column(Integer, ForeignKey("exams.id"), nullable=True) # Prova vinculada
     title = Column(String, default="Nova Conversa")
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User")
+    exam = relationship("Exam")
     messages = relationship("AIChatMessage", back_populates="session", cascade="all, delete-orphan")
 
 class AIChatMessage(Base):

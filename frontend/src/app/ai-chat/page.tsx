@@ -30,6 +30,12 @@ export default function AIChatPage() {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
+  // Challenge State variables
+  const [examKeyInput, setExamKeyInput] = useState("");
+  const [startingChallenge, setStartingChallenge] = useState(false);
+  const [challengeError, setChallengeError] = useState("");
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +58,38 @@ export default function AIChatPage() {
       fetchSessions();
     }
   }, []);
+
+  // Check URL query parameters for 'challenge' parameter on load
+  useEffect(() => {
+    if (typeof window !== "undefined" && isAuthenticated) {
+      const params = new URLSearchParams(window.location.search);
+      const challengeKey = params.get("challenge");
+      if (challengeKey) {
+        handleStartExamChallenge(challengeKey);
+        // Clean URL parameter
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, [isAuthenticated]);
+
+  const handleStartExamChallenge = async (key: string) => {
+    if (!key.trim()) return;
+    setStartingChallenge(true);
+    setChallengeError("");
+    try {
+      const res = await api.post("/ai/sessions/exam-challenge", { exam_key: key });
+      setSessions(prev => [res.data, ...prev]);
+      setActiveSessionId(res.data.id);
+      await fetchMessages(res.data.id);
+      setExamKeyInput("");
+    } catch (err: any) {
+      console.error("Erro ao iniciar desafio", err);
+      setChallengeError(err.response?.data?.detail || "Não foi possível encontrar esta prova.");
+    } finally {
+      setStartingChallenge(false);
+    }
+  };
 
   const fetchSessions = async () => {
     try {
@@ -185,6 +223,9 @@ export default function AIChatPage() {
     );
   }
 
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+  const isChallenge = activeSession?.title.startsWith("Desafio:");
+
   return (
     <div className="min-h-screen bg-background pt-24 pb-12 flex flex-col px-6 md:px-12 lg:px-20 xl:px-32 max-w-[1600px] mx-auto font-sans relative overflow-hidden">
       
@@ -221,7 +262,7 @@ export default function AIChatPage() {
             transition={{ delay: 0.1 }}
             className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-lg flex-grow flex flex-col overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-6 flex-shrink-0">
+            <div className="flex items-center justify-between mb-4 flex-shrink-0">
               <h3 className="text-lg font-black text-white font-title">Minhas Conversas</h3>
               <button 
                 onClick={() => handleCreateSession()}
@@ -232,6 +273,30 @@ export default function AIChatPage() {
                 <span>Nova</span>
               </button>
             </div>
+
+            {/* Widget Desafio por Chave */}
+            <div className="mb-4 p-4 rounded-2xl bg-lilac-dark/45 border border-lilac-light/10 flex-shrink-0 text-left">
+              <span className="text-[10px] font-bold text-orange uppercase tracking-wider block mb-2">Desafio por Chave de Prova</span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={examKeyInput}
+                  onChange={(e) => setExamKeyInput(e.target.value)}
+                  placeholder="Ex: UAN-MAT-2023"
+                  className="flex-1 bg-lilac-dark/60 border border-lilac-light/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-orange font-bold uppercase"
+                />
+                <button
+                  onClick={() => handleStartExamChallenge(examKeyInput)}
+                  disabled={!examKeyInput.trim() || startingChallenge}
+                  className="px-3 py-2 bg-orange text-lilac-dark font-black text-xs rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-50"
+                >
+                  {startingChallenge ? '...' : 'Iniciar'}
+                </button>
+              </div>
+              {challengeError && (
+                <p className="text-[10px] text-rose-400 mt-2 font-bold leading-tight">{challengeError}</p>
+              )}
+            </div>
             
             <div className="flex-grow overflow-y-auto space-y-3 pr-2 custom-scrollbar">
               {loadingSessions ? (
@@ -240,7 +305,7 @@ export default function AIChatPage() {
                   <span className="text-xs text-white/60 font-bold">A carregar...</span>
                 </div>
               ) : sessions.length === 0 ? (
-                <div className="text-center py-10 text-white/50 font-medium text-sm">Nenhuma conversa ativa.</div>
+                <div className="text-center py-10 text-white/50 font-medium text-sm">Nenhuma conversa activa.</div>
               ) : (
                 sessions.map((session) => (
                   <button
@@ -276,23 +341,40 @@ export default function AIChatPage() {
               </div>
               <div className="text-left">
                 <h1 className="text-base font-black text-white flex items-center gap-2 font-title">
-                  Tutor Inteligente
+                  {isChallenge ? activeSession?.title : "Tutor Inteligente"}
                 </h1>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  <p className="text-xs font-bold text-white/60">
-                    {activeModule === "high_school" ? "Contexto: Ensino Médio 🎒" : "Contexto: Acesso Superior 🎓"}
-                  </p>
+                  {isChallenge ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-orange text-lilac-dark text-[10px] font-black uppercase tracking-wider animate-pulse">
+                      Desafio Ativo 🎯
+                    </span>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                      <p className="text-xs font-bold text-white/60">
+                        {activeModule === "high_school" ? "Contexto: Ensino Médio 🎒" : "Contexto: Acesso Superior 🎓"}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-            <button 
-              onClick={() => activeSessionId && fetchMessages(activeSessionId)}
-              className="p-3 bg-lilac-dark/60 text-white/60 hover:text-orange border border-lilac-light/20 rounded-xl shadow-sm hover:shadow-md transition-all"
-              title="Recarregar mensagens"
-            >
-              <RefreshCw className="w-4.5 h-4.5" />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+                className="lg:hidden p-3 bg-lilac-dark/60 text-white/60 hover:text-orange border border-lilac-light/20 rounded-xl shadow-sm hover:shadow-md transition-all animate-pulse"
+                title="Minhas Conversas"
+              >
+                <MessageSquare className="w-4.5 h-4.5 text-orange" />
+              </button>
+              <button 
+                onClick={() => activeSessionId && fetchMessages(activeSessionId)}
+                className="p-3 bg-lilac-dark/60 text-white/60 hover:text-orange border border-lilac-light/20 rounded-xl shadow-sm hover:shadow-md transition-all"
+                title="Recarregar mensagens"
+              >
+                <RefreshCw className="w-4.5 h-4.5" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
@@ -363,6 +445,103 @@ export default function AIChatPage() {
           
         </motion.div>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {showMobileSidebar && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileSidebar(false)}
+              className="fixed inset-0 bg-[#0f0b12]/80 backdrop-blur-sm"
+            />
+            {/* Drawer */}
+            <motion.div 
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-80 max-w-[85vw] bg-[#1c1422] border-r border-lilac-light/20 p-6 flex flex-col h-full z-10 shadow-2xl text-left"
+            >
+              <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                <span className="font-black font-title tracking-wide text-lg text-white">Minhas Conversas</span>
+                <button 
+                  onClick={() => setShowMobileSidebar(false)}
+                  className="p-2 text-white/60 hover:text-white text-lg font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <button 
+                onClick={() => {
+                  handleCreateSession();
+                  setShowMobileSidebar(false);
+                }}
+                className="w-full mb-4 py-3 bg-orange text-lilac-dark rounded-xl transition-all flex items-center justify-center gap-1.5 font-bold text-sm shadow-sm"
+              >
+                <Plus className="w-4 h-4 text-lilac-dark" />
+                <span className="text-lilac-dark font-black">Nova Conversa</span>
+              </button>
+
+              {/* Widget Desafio por Chave */}
+              <div className="mb-4 p-4 rounded-2xl bg-lilac-base/10 border border-lilac-light/10 flex-shrink-0 text-left">
+                <span className="text-[10px] font-bold text-orange uppercase tracking-wider block mb-2">Desafio por Chave</span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={examKeyInput}
+                    onChange={(e) => setExamKeyInput(e.target.value)}
+                    placeholder="Ex: UAN-MAT-2023"
+                    className="flex-1 bg-lilac-dark/60 border border-lilac-light/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-orange font-bold uppercase"
+                  />
+                  <button
+                    onClick={async () => {
+                      await handleStartExamChallenge(examKeyInput);
+                      setShowMobileSidebar(false);
+                    }}
+                    disabled={!examKeyInput.trim() || startingChallenge}
+                    className="px-3 py-2 bg-orange text-lilac-dark font-black text-xs rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-50"
+                  >
+                    {startingChallenge ? '...' : 'Ir'}
+                  </button>
+                </div>
+                {challengeError && (
+                  <p className="text-[10px] text-rose-400 mt-2 font-bold leading-tight">{challengeError}</p>
+                )}
+              </div>
+
+              <div className="flex-grow overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                {loadingSessions ? (
+                  <div className="flex flex-col items-center justify-center py-10 space-y-2">
+                    <div className="w-6 h-6 border-2 border-orange/20 border-t-orange rounded-full animate-spin"></div>
+                    <span className="text-xs text-white/60 font-bold">A carregar...</span>
+                  </div>
+                ) : sessions.length === 0 ? (
+                  <div className="text-center py-10 text-white/50 font-medium text-sm">Nenhuma conversa activa.</div>
+                ) : (
+                  sessions.map((session) => (
+                    <button
+                      key={session.id}
+                      onClick={() => {
+                        handleSelectSession(session.id);
+                        setShowMobileSidebar(false);
+                      }}
+                      className="w-full text-left p-4 rounded-xl border border-lilac-light/20 bg-lilac-dark/40 hover:border-orange/50 text-white/70 hover:text-white flex items-center gap-3 transition-all group"
+                    >
+                      <MessageSquare className="w-5 h-5 shrink-0 text-white/45 group-hover:text-orange" />
+                      <span className="font-bold text-sm truncate">{session.title}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
