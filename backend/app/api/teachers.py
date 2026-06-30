@@ -119,6 +119,12 @@ async def approve_teacher(
     if not user:
         raise HTTPException(status_code=404, detail="Professor não encontrado.")
         
+    if user.status == "pending_interview":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não é possível aprovar este professor porque ele ainda não concluiu a fase de entrevista (candidatura incompleta)."
+        )
+        
     user.status = "active"
     await db.commit()
     return {"message": f"Professor {user.full_name} aprovado com sucesso!"}

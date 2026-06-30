@@ -142,11 +142,13 @@ async def on_startup():
                 from reset_admin import reset_admin
                 from seed_exams import seed_exams
                 from seed_materials import seed_materials
+                from seed_data_rich import seed_data_rich
                 
                 logger.info("Iniciando carregamento de dados padrão (Seeding)...")
                 await reset_admin()
                 await seed_exams()
                 await seed_materials()
+                await seed_data_rich()
                 logger.info("Seeding concluído com sucesso!")
             except Exception as e:
                 logger.error(f"Erro ao executar seeding no startup: {e}")

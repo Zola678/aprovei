@@ -306,11 +306,20 @@ export default function AdminDashboard({ user }: { user: any }) {
 
                     <div className="flex xl:flex-col gap-3 shrink-0 w-full xl:w-auto">
                       <button
-                        disabled={actionLoading !== null}
+                        disabled={actionLoading !== null || candidate.status === 'pending_interview'}
                         onClick={() => handleApprove(candidate.id)}
-                        className="flex-1 xl:flex-none btn-orange px-6 py-3 font-bold rounded-xl text-sm"
+                        className={`flex-1 xl:flex-none px-6 py-3 font-bold rounded-xl text-sm transition-all ${
+                          candidate.status === 'pending_interview'
+                            ? 'bg-orange/20 text-orange/40 cursor-not-allowed border border-orange/10'
+                            : 'btn-orange'
+                        }`}
                       >
-                        {actionLoading === candidate.id ? "A Processar..." : "Aprovar Candidato"}
+                        {actionLoading === candidate.id 
+                          ? "A Processar..." 
+                          : candidate.status === 'pending_interview' 
+                            ? "Aguardando Entrevista" 
+                            : "Aprovar Candidato"
+                        }
                       </button>
                       <button
                         disabled={actionLoading !== null}

@@ -160,9 +160,8 @@ class LunarAI:
 
     def run(self, prompt: str) -> str:
         try:
-            response = None
-            if self.is_online():
-                response = self.talk_gemini(prompt)
+            # Tentar chamar o Gemini diretamente (talk_gemini já valida se existe API key e trata exceções)
+            response = self.talk_gemini(prompt)
                 
             if not response:
                 response = self.talk_ollama(prompt)
