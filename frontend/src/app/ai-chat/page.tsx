@@ -271,13 +271,23 @@ export default function AIChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-12 flex flex-col px-6 md:px-12 lg:px-20 xl:px-32 max-w-[1600px] mx-auto font-sans relative overflow-hidden">
+    <div className={
+      isAuthenticated 
+        ? "w-full flex-grow flex flex-col max-w-[1600px] mx-auto font-sans relative overflow-hidden"
+        : "min-h-screen bg-background pt-24 pb-12 flex flex-col px-6 md:px-12 lg:px-20 xl:px-32 max-w-[1600px] mx-auto font-sans relative overflow-hidden"
+    }>
       
       {/* Background Orbs */}
-      <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] bg-lilac-light/20 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse-slow"></div>
-      <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-orange/10 rounded-full blur-[150px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
+      {!isAuthenticated && (
+        <>
+          <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] bg-lilac-light/20 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse-slow"></div>
+          <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-orange/10 rounded-full blur-[150px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
+        </>
+      )}
 
-      <div className="grid lg:grid-cols-12 gap-8 h-[78vh] relative z-10">
+      <div className={`grid lg:grid-cols-12 gap-6 lg:gap-8 relative z-10 ${
+        isAuthenticated ? "h-[calc(100vh-14rem)] min-h-[450px]" : "h-[78vh]"
+      }`}>
         
         {/* Left Sidebar (Chat Sessions) */}
         <div className="hidden lg:flex lg:col-span-4 flex-col gap-6 h-full overflow-hidden">
@@ -424,17 +434,17 @@ export default function AIChatPage() {
           {/* Messages Area */}
           <div 
             ref={chatContainerRef}
-            className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-lilac-dark/25 custom-scrollbar"
+            className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6 bg-lilac-dark/25 custom-scrollbar"
           >
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-4 max-w-[85%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+                className={`flex gap-3 sm:gap-4 max-w-[92%] sm:max-w-[85%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
               >
                 <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-sm ${msg.sender === "user" ? "bg-orange text-lilac-dark" : "bg-gradient-to-br from-lilac-light to-lilac-base text-white border border-lilac-light/30"}`}>
                   {msg.sender === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                 </div>
-                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-semibold ${msg.sender === "user" ? "bg-gradient-to-r from-orange to-amber-500 text-lilac-dark rounded-tr-sm shadow-[0_5px_15px_rgba(255,107,0,0.2)]" : "bg-lilac-dark/60 border border-lilac-light/30 text-white rounded-tl-sm shadow-sm"}`}>
+                <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-[14px] leading-relaxed font-semibold ${msg.sender === "user" ? "bg-gradient-to-r from-orange to-amber-500 text-lilac-dark rounded-tr-sm shadow-[0_5px_15px_rgba(255,107,0,0.2)]" : "bg-lilac-dark/60 border border-lilac-light/30 text-white rounded-tl-sm shadow-sm"}`}>
                   {msg.sender === "user" ? (
                     <p className="whitespace-pre-wrap font-medium text-left">{msg.content}</p>
                   ) : (
