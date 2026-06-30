@@ -107,6 +107,19 @@ async def generate_ai_response(
                     "Foca a resposta no contexto curricular angolano."
                 )
             
+            # Adicionar regra crítica de formatação matemática
+            math_formatting_rule = (
+                "\n\n[REGRA CRÍTICA DE FORMATAÇÃO MATEMÁTICA]\n"
+                "- NUNCA uses notação LaTeX, símbolos matemáticos brutos (ex: \\frac, \\sqrt, \\cdot, \\times, \\Delta) ou cifrões ($ ou $$) para envolver fórmulas.\n"
+                "- Formata todas as equações, potências, raízes e funções em texto simples legível usando caracteres padrão do teclado.\n"
+                "- Para potências, usa '^' (ex: x^2, x^3).\n"
+                "- Para raízes, escreve por extenso 'raiz(x)' ou 'raiz quadrada de x'.\n"
+                "- Para multiplicação, usa '*' ou 'x'. Para divisão, usa '/'.\n"
+                "- Para frações complexas, escreve no formato '(numerador)/(denominador)'.\n"
+                "- Escreve as fórmulas passo a passo em linhas separadas para facilitar a leitura em dispositivos móveis."
+            )
+            system_prompt += math_formatting_rule
+
             # 2. Formatar o histórico para o formato aceitado pela API do Gemini
             contents = []
             for msg in history:
