@@ -175,10 +175,10 @@ export default function Home() {
               key={bg}
               src={bg} 
               alt="Estudantes em Angola" 
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-in-out ${idx === bgIndex ? "opacity-35" : "opacity-0"}`} 
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-in-out ${idx === bgIndex ? "opacity-15 md:opacity-35" : "opacity-0"}`} 
             />
           ))}
-          <div className="absolute inset-0 bg-gradient-to-r from-lilac-dark via-lilac-dark/95 to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-lilac-dark via-lilac-dark/95 to-transparent z-10" />
         </div>
 
         {/* Grid de Conteúdo - Alinhamento ideal de margens */}
@@ -418,7 +418,7 @@ export default function Home() {
 
             {/* Showcase Visual do Material */}
             <div className="lg:col-span-7">
-              <div className="relative h-full min-h-[420px] rounded-3xl overflow-hidden border border-white/10 bg-lilac-dark/50">
+              <div className="relative h-64 md:h-full min-h-[280px] md:min-h-[420px] rounded-3xl overflow-hidden border border-white/10 bg-lilac-dark/50">
                 <img 
                   src={prepTab === "medio" ? "/WhatsApp Image 2026-06-22 at 15.36.43 (12).jpeg" : "/WhatsApp Image 2026-06-22 at 15.36.43.jpeg"} 
                   alt="Preparatório APROVEI" 
@@ -427,16 +427,16 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-lilac-dark/95 via-lilac-dark/45 to-transparent" />
                 
                 {/* Overlay Informativo */}
-                <div className="absolute bottom-0 left-0 p-6 md:p-10 text-left space-y-2 max-w-xl">
-                  <span className="bg-orange-accent text-lilac-dark text-xxs font-black tracking-widest uppercase px-3 py-1 rounded-md">
+                <div className="absolute bottom-0 left-0 p-4 md:p-10 text-left space-y-1.5 max-w-xl">
+                  <span className="bg-orange-accent text-lilac-dark text-[10px] font-black tracking-widest uppercase px-2.5 py-0.5 rounded-md">
                     Destaque Curricular
                   </span>
-                  <h4 className="text-xl md:text-3xl font-black leading-tight">
+                  <h4 className="text-lg md:text-3xl font-black leading-tight">
                     {prepTab === "medio" 
                       ? "Matérias técnicas com resoluções explicadas" 
                       : "Preparatório Intensivo Filda-Ready"}
                   </h4>
-                  <p className="text-xs md:text-sm text-white/80 leading-relaxed font-medium">
+                  <p className="text-[11px] md:text-sm text-white/85 leading-relaxed font-medium">
                     {prepTab === "medio"
                       ? "Acede a exames e apontamentos das maiores instituições técnicas de Luanda e arredores."
                       : "Foca no que cai: limites, mecânica newtoniana, ecologia e história de Angola."}
@@ -583,7 +583,7 @@ export default function Home() {
                 className="group relative overflow-hidden rounded-3xl border border-white/10 bg-lilac-base/20 backdrop-blur-md hover:border-orange-accent/30 transition-all duration-500 flex flex-col justify-between"
               >
                 <div>
-                  <div className="relative h-56 md:h-64 overflow-hidden">
+                  <div className="relative h-48 md:h-64 overflow-hidden">
                     <img 
                       src={sol.image} 
                       alt={sol.title} 
