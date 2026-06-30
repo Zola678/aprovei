@@ -251,22 +251,16 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-full relative px-4 sm:px-8 py-5 sm:py-8 h-screen overflow-y-auto custom-scrollbar flex flex-col">
+      <main className={`flex-1 w-full max-w-full relative px-0 sm:px-8 py-0 sm:py-8 h-screen flex flex-col ${
+        pathname === "/ai-chat" ? "overflow-hidden" : "overflow-y-auto custom-scrollbar"
+      }`}>
         
-        {/* Top Header Bar (Responsive: Menu trigger on Mobile, Stats/Profile on right) */}
-        <div className="flex justify-between md:justify-end items-center mb-6 sm:mb-10 bg-lilac-dark/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg sticky top-0 z-40 w-full">
-          {/* Mobile Menu Toggle button */}
-          <button 
-            onClick={() => setIsMobileOpen(true)}
-            className="md:hidden p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          
-          {/* Logo only on mobile top-bar center */}
+        {/* Top Header Bar (Responsive: Stats/Profile on right, Logo/Brand on left for Mobile) */}
+        <div className="flex justify-between md:justify-end items-center mb-0 sm:mb-10 bg-lilac-dark/90 sm:bg-lilac-dark/40 backdrop-blur-xl border-b sm:border border-white/10 rounded-none sm:rounded-2xl p-4 shadow-lg sticky top-0 z-40 w-full flex-shrink-0">
+          {/* Logo on the left for Mobile (WhatsApp style Header) */}
           <div className="md:hidden flex items-center gap-2">
             <img src="/logoAprovei.jpeg" alt="APROVEI Logo" className="h-8 w-auto rounded-lg shadow-sm" />
-            <span className="font-bold text-sm tracking-tight text-white">APROVEI</span>
+            <span className="font-black text-base tracking-tight text-white font-title">APROVEI</span>
           </div>
 
           {/* Right Side: Notifications / Profile */}
@@ -286,9 +280,45 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
         </div>
 
         {/* Child Page Contents */}
-        <div className="flex-grow w-full max-w-full">
+        <div className={`flex-grow w-full max-w-full ${
+          pathname !== "/ai-chat" ? "pb-20" : ""
+        }`}>
           {children}
         </div>
+
+        {/* Bottom Navigation Bar for Mobile (WhatsApp Replica Layout) */}
+        {isLoggedIn && (
+          <div className="md:hidden w-full h-16 bg-[#1c1422] border-t border-lilac-light/10 flex items-center justify-around z-50 shrink-0 sticky bottom-0">
+            {navItems.map((item, index) => {
+              const isActive = pathname === item.path;
+              
+              let shortLabel = item.label;
+              if (item.label === "Painel de Estudos") shortLabel = "Painel";
+              if (item.label === "Provas & Exames") shortLabel = "Exames";
+              if (item.label === "Comunidade IA") shortLabel = "Fórum";
+              if (item.label === "IA Tutor") shortLabel = "Tutor IA";
+              if (item.label === "Tutores") shortLabel = "Explica";
+
+              const allowedPaths = ["/dashboard", "/exams", "/teachers", "/forum", "/ai-chat"];
+              if (!allowedPaths.includes(item.path)) return null;
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => router.push(item.path)}
+                  className={`flex flex-col items-center justify-center gap-1 flex-1 py-1 transition-all ${
+                    isActive ? "text-orange" : "text-white/40 hover:text-white/70"
+                  }`}
+                >
+                  <div className={`transition-transform duration-200 ${isActive ? "scale-110 text-orange" : "text-white/40"}`}>
+                    {React.cloneElement(item.icon as React.ReactElement, { className: "w-5 h-5" })}
+                  </div>
+                  <span className="text-[10px] font-black tracking-tight truncate max-w-full px-1">{shortLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </main>
 
     </div>

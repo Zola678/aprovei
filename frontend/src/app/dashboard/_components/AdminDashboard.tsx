@@ -103,7 +103,7 @@ export default function AdminDashboard({ user }: { user: any }) {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-10 pb-20 px-4 sm:px-0 pt-6 sm:pt-0 text-left font-sans">
+    <div className="space-y-6 sm:space-y-10 px-4 sm:px-0 pt-6 sm:pt-0 text-left font-sans">
       
       {/* Dynamic Toast Notification */}
       <AnimatePresence>

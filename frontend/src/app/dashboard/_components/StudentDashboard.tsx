@@ -35,7 +35,7 @@ export default function StudentDashboard({
   };
 
   return (
-    <div className="space-y-6 sm:space-y-10 pb-20 px-4 sm:px-0 pt-6 sm:pt-0 font-sans text-left">
+    <div className="space-y-6 sm:space-y-10 px-4 sm:px-0 pt-6 sm:pt-0 font-sans text-left">
       {/* Top Banner: Welcome & Streak */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
