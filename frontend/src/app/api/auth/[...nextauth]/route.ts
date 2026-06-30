@@ -20,7 +20,9 @@ const handler = NextAuth({
     async jwt({ token, account }) {
       if (account) {
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/auth/social-login`, {
+          const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+          const baseUrl = rawApiUrl.replace(/\/api\/v1\/?$/, '');
+          const res = await fetch(`${baseUrl}/api/v1/auth/social-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
