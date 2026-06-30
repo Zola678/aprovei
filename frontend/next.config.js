@@ -9,6 +9,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   productionBrowserSourceMaps: false,
+  experimental: {
+    workerThreads: false,
+    cpus: 1
+  }
 };
 
 module.exports = nextConfig;
