@@ -9,6 +9,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
   const [user, setUser] = useState<any>(null);
   const [isPinned, setIsPinned] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -30,6 +31,9 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
 
     // Fechar menu mobile ao mudar de rota
     setIsMobileOpen(false);
+    
+    // Concluída a verificação
+    setIsAuthLoading(false);
   }, [pathname]);
 
   const handleLogout = () => {
@@ -45,7 +49,31 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
     localStorage.setItem('sidebar_pinned', String(newPin));
   };
 
-  const isGuestPage = pathname === "/" || pathname === "/auth/login" || pathname === "/auth/register";
+  const isGuestPage = pathname === "/" || 
+                      pathname === "/auth/login" || 
+                      pathname === "/auth/register" ||
+                      pathname === "/about" ||
+                      pathname === "/faq" ||
+                      pathname === "/blog";
+
+  useEffect(() => {
+    if (!isAuthLoading && !isLoggedIn && !isGuestPage) {
+      router.push('/auth/login');
+    }
+  }, [isAuthLoading, isLoggedIn, isGuestPage, pathname, router]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen py-32 space-y-4">
+        <div className="w-12 h-12 border-4 border-orange/20 border-t-orange rounded-full animate-spin"></div>
+        <p className="text-white/60 font-semibold animate-pulse">A carregar...</p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn && !isGuestPage) {
+    return null;
+  }
 
   if (!isLoggedIn || isGuestPage) {
     // Logged out wrapper: add padding-top for Navbar
