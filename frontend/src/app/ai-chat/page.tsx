@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Bot, Send, User, Sparkles, AlertCircle, RefreshCw, BookOpen, GraduationCap, Plus, MessageSquare, LogIn } from "lucide-react";
+import { Bot, Send, User, Sparkles, AlertCircle, RefreshCw, BookOpen, GraduationCap, Plus, MessageSquare, LogIn, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import { useModule } from "@/context/ModuleContext";
@@ -29,6 +29,7 @@ export default function AIChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
   
   // Challenge State variables
   const [examKeyInput, setExamKeyInput] = useState("");
@@ -83,6 +84,7 @@ export default function AIChatPage() {
       setActiveSessionId(res.data.id);
       await fetchMessages(res.data.id);
       setExamKeyInput("");
+      setMobileView('chat');
     } catch (err: any) {
       console.error("Erro ao iniciar desafio", err);
       setChallengeError(err.response?.data?.detail || "Não foi possível encontrar esta prova.");
@@ -135,6 +137,7 @@ export default function AIChatPage() {
             : "Olá! Sou a APROVEI IA, o teu tutor focado nos Exames de Acesso Universitários. Qual é a disciplina que vamos estudar hoje?"
         }
       ]);
+      setMobileView('chat');
     } catch (err) {
       console.error("Erro ao criar sessão", err);
     }
@@ -143,6 +146,7 @@ export default function AIChatPage() {
   const handleSelectSession = (id: number) => {
     setActiveSessionId(id);
     fetchMessages(id);
+    setMobileView('chat');
   };
 
   const handleSend = async (e: React.FormEvent) => {
@@ -285,12 +289,12 @@ export default function AIChatPage() {
         </>
       )}
 
-      <div className={`grid lg:grid-cols-12 gap-6 lg:gap-8 relative z-10 ${
-        isAuthenticated ? "h-[calc(100vh-14rem)] min-h-[450px]" : "h-[78vh]"
+      <div className={`grid grid-cols-12 lg:gap-6 lg:gap-8 relative z-10 ${
+        isAuthenticated ? "h-[calc(100vh-8rem)] sm:h-[calc(100vh-14rem)] min-h-[450px]" : "h-[78vh]"
       }`}>
         
         {/* Left Sidebar (Chat Sessions) */}
-        <div className="hidden lg:flex lg:col-span-4 flex-col gap-6 h-full overflow-hidden">
+        <div className={`${mobileView === 'list' ? 'flex col-span-12' : 'hidden'} lg:flex lg:col-span-4 flex-col gap-6 h-full overflow-hidden px-4 lg:px-0`}>
           {/* Header Info */}
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
@@ -385,12 +389,24 @@ export default function AIChatPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-8 w-full card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-lg overflow-hidden flex flex-col h-full !p-0"
+          className={`${mobileView === 'chat' ? 'flex col-span-12' : 'hidden'} lg:flex lg:col-span-8 w-full card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-lg overflow-hidden flex flex-col h-full !p-0 rounded-none lg:rounded-[2rem] border-x-0 border-b-0 lg:border border-white/10`}
         >
           {/* Header */}
           <div className="bg-lilac-dark/40 border-b border-lilac-light/20 p-5 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange/10 border border-orange/20 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Back Button for mobile view */}
+              <button 
+                onClick={() => {
+                  setMobileView('list');
+                  setActiveSessionId(null);
+                }}
+                className="lg:hidden p-2 text-white/60 hover:text-orange transition-colors shrink-0"
+                title="Voltar para conversas"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              
+              <div className="w-12 h-12 bg-orange/10 border border-orange/20 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                 <Bot className="w-6 h-6 text-orange" />
               </div>
               <div className="text-left">
@@ -414,13 +430,6 @@ export default function AIChatPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <button 
-                onClick={() => setShowMobileSidebar(!showMobileSidebar)}
-                className="lg:hidden p-3 bg-lilac-dark/60 text-white/60 hover:text-orange border border-lilac-light/20 rounded-xl shadow-sm hover:shadow-md transition-all animate-pulse"
-                title="Minhas Conversas"
-              >
-                <MessageSquare className="w-4.5 h-4.5 text-orange" />
-              </button>
               <button 
                 onClick={() => activeSessionId && fetchMessages(activeSessionId)}
                 className="p-3 bg-lilac-dark/60 text-white/60 hover:text-orange border border-lilac-light/20 rounded-xl shadow-sm hover:shadow-md transition-all"
@@ -504,102 +513,7 @@ export default function AIChatPage() {
         </motion.div>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
-        {showMobileSidebar && (
-          <div className="fixed inset-0 z-50 lg:hidden flex">
-            {/* Backdrop */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMobileSidebar(false)}
-              className="fixed inset-0 bg-[#0f0b12]/80 backdrop-blur-sm"
-            />
-            {/* Drawer */}
-            <motion.div 
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-80 max-w-[85vw] bg-[#1c1422] border-r border-lilac-light/20 p-6 flex flex-col h-full z-10 shadow-2xl text-left"
-            >
-              <div className="flex items-center justify-between mb-6 flex-shrink-0">
-                <span className="font-black font-title tracking-wide text-lg text-white">Minhas Conversas</span>
-                <button 
-                  onClick={() => setShowMobileSidebar(false)}
-                  className="p-2 text-white/60 hover:text-white text-lg font-bold"
-                >
-                  ✕
-                </button>
-              </div>
 
-              <button 
-                onClick={() => {
-                  handleCreateSession();
-                  setShowMobileSidebar(false);
-                }}
-                className="w-full mb-4 py-3 bg-orange text-lilac-dark rounded-xl transition-all flex items-center justify-center gap-1.5 font-bold text-sm shadow-sm"
-              >
-                <Plus className="w-4 h-4 text-lilac-dark" />
-                <span className="text-lilac-dark font-black">Nova Conversa</span>
-              </button>
-
-              {/* Widget Desafio por Chave */}
-              <div className="mb-4 p-4 rounded-2xl bg-lilac-base/10 border border-lilac-light/10 flex-shrink-0 text-left">
-                <span className="text-[10px] font-bold text-orange uppercase tracking-wider block mb-2">Desafio por Chave</span>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={examKeyInput}
-                    onChange={(e) => setExamKeyInput(e.target.value)}
-                    placeholder="Ex: UAN-MAT-2023"
-                    className="flex-1 bg-lilac-dark/60 border border-lilac-light/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-orange font-bold uppercase"
-                  />
-                  <button
-                    onClick={async () => {
-                      await handleStartExamChallenge(examKeyInput);
-                      setShowMobileSidebar(false);
-                    }}
-                    disabled={!examKeyInput.trim() || startingChallenge}
-                    className="px-3 py-2 bg-orange text-lilac-dark font-black text-xs rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-50"
-                  >
-                    {startingChallenge ? '...' : 'Ir'}
-                  </button>
-                </div>
-                {challengeError && (
-                  <p className="text-[10px] text-rose-400 mt-2 font-bold leading-tight">{challengeError}</p>
-                )}
-              </div>
-
-              <div className="flex-grow overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                {loadingSessions ? (
-                  <div className="flex flex-col items-center justify-center py-10 space-y-2">
-                    <div className="w-6 h-6 border-2 border-orange/20 border-t-orange rounded-full animate-spin"></div>
-                    <span className="text-xs text-white/60 font-bold">A carregar...</span>
-                  </div>
-                ) : sessions.length === 0 ? (
-                  <div className="text-center py-10 text-white/50 font-medium text-sm">Nenhuma conversa activa.</div>
-                ) : (
-                  sessions.map((session) => (
-                    <button
-                      key={session.id}
-                      onClick={() => {
-                        handleSelectSession(session.id);
-                        setShowMobileSidebar(false);
-                      }}
-                      className="w-full text-left p-4 rounded-xl border border-lilac-light/20 bg-lilac-dark/40 hover:border-orange/50 text-white/70 hover:text-white flex items-center gap-3 transition-all group"
-                    >
-                      <MessageSquare className="w-5 h-5 shrink-0 text-white/45 group-hover:text-orange" />
-                      <span className="font-bold text-sm truncate">{session.title}</span>
-                    </button>
-                  ))
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
