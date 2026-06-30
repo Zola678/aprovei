@@ -48,7 +48,7 @@ export default function TeacherDashboard({ user }: { user: any }) {
   }
 
   return (
-    <div className="space-y-10 pb-20 text-left font-sans">
+    <div className="space-y-6 sm:space-y-10 pb-20 px-4 sm:px-0 pt-6 sm:pt-0 text-left font-sans">
       {/* Banner */}
       <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] backdrop-blur-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-orange/5 rounded-bl-full pointer-events-none"></div>
