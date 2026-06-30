@@ -129,6 +129,26 @@ async def on_startup():
                 except Exception as e:
                     logger.error(f"Erro ao rodar migração de tabelas no startup: {e}")
             logger.info("Banco de dados conectado e inicializado com sucesso!")
+            
+            # Seeding automático de Admin, Provas e Materiais do Ensino Médio
+            try:
+                import sys
+                import os
+                backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                if backend_dir not in sys.path:
+                    sys.path.append(backend_dir)
+                
+                from reset_admin import reset_admin
+                from seed_exams import seed_exams
+                from seed_materials import seed_materials
+                
+                logger.info("Iniciando carregamento de dados padrão (Seeding)...")
+                await reset_admin()
+                await seed_exams()
+                await seed_materials()
+                logger.info("Seeding concluído com sucesso!")
+            except Exception as e:
+                logger.error(f"Erro ao executar seeding no startup: {e}")
             break
         except Exception as e:
             logger.error(f"Erro de conexao com o banco de dados na tentativa {attempt}: {e}")
