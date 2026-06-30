@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 import logging
+import asyncio
 from app.api import auth, exams, teachers, forum, study, payments, ai, materials
 from app.core.database import engine, Base
 from app.models.models import User, Exam, TeacherProfile, ForumPost, ForumComment, StudyTask, Payment, HighSchoolMaterial
