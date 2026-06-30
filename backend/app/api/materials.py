@@ -21,7 +21,8 @@ async def upload_material(
     subject: str = Form(...),
     title: str = Form(...),
     description: str = Form(None),
-    file: UploadFile = File(...),
+    file: UploadFile = File(None),
+    video_url: str = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
 ):
@@ -29,25 +30,32 @@ async def upload_material(
     if current_user.role not in ["teacher", "admin"]:
         raise HTTPException(status_code=403, detail="Apenas professores ou administradores podem cadastrar materiais.")
 
-    # 1. Validação de arquivo
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
-    
-    # 2. Gerar nome único
-    file_name = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, file_name)
-    
-    # 3. Salvar arquivo
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # 1. Validação de entrada
+    if not file and not video_url:
+        raise HTTPException(status_code=400, detail="Deves fornecer um arquivo PDF ou uma URL de vídeo.")
         
-    # 4. Salvar no banco
+    final_file_url = ""
+    
+    if file:
+        if file.content_type != "application/pdf":
+            raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
+        
+        file_name = f"{uuid.uuid4()}_{file.filename}"
+        file_path = os.path.join(UPLOAD_DIR, file_name)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        final_file_url = file_path
+    else:
+        final_file_url = video_url
+        
+    # 2. Salvar no banco
     new_material = MaterialModel(
         grade=grade,
         subject=subject.capitalize(),
         title=title,
         description=description,
-        file_url=file_path
+        file_url=final_file_url
     )
     
     db.add(new_material)

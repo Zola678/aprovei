@@ -226,6 +226,50 @@ export default function AIChatPage() {
   const activeSession = sessions.find(s => s.id === activeSessionId);
   const isChallenge = activeSession?.title.startsWith("Desafio:");
 
+  const renderMessageContent = (content: string) => {
+    const lines = content.split('\n');
+    return lines.map((line, i) => {
+      let cleanLine = line;
+      const isListItem = cleanLine.trim().startsWith('- ') || cleanLine.trim().startsWith('* ');
+      if (isListItem) {
+        cleanLine = cleanLine.replace(/^[\s\-\*]+/, '');
+      }
+
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      const parts: React.ReactNode[] = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = boldRegex.exec(cleanLine)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(cleanLine.substring(lastIndex, match.index));
+        }
+        parts.push(<strong key={match.index} className="text-orange font-black">{match[1]}</strong>);
+        lastIndex = boldRegex.lastIndex;
+      }
+      if (lastIndex < cleanLine.length) {
+        parts.push(cleanLine.substring(lastIndex));
+      }
+
+      const renderedLine = parts.length > 0 ? parts : cleanLine;
+
+      if (isListItem) {
+        return (
+          <div key={i} className="flex gap-2 items-start font-medium text-white/95 mt-1 ml-2">
+            <span className="text-orange shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-orange"></span>
+            <span>{renderedLine}</span>
+          </div>
+        );
+      }
+
+      return (
+        <p key={i} className="min-h-[1.2rem] font-medium text-white/90 leading-relaxed text-left">
+          {renderedLine}
+        </p>
+      );
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background pt-24 pb-12 flex flex-col px-6 md:px-12 lg:px-20 xl:px-32 max-w-[1600px] mx-auto font-sans relative overflow-hidden">
       
@@ -391,7 +435,11 @@ export default function AIChatPage() {
                   {msg.sender === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                 </div>
                 <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-semibold ${msg.sender === "user" ? "bg-gradient-to-r from-orange to-amber-500 text-lilac-dark rounded-tr-sm shadow-[0_5px_15px_rgba(255,107,0,0.2)]" : "bg-lilac-dark/60 border border-lilac-light/30 text-white rounded-tl-sm shadow-sm"}`}>
-                  <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
+                  {msg.sender === "user" ? (
+                    <p className="whitespace-pre-wrap font-medium text-left">{msg.content}</p>
+                  ) : (
+                    <div className="space-y-1.5">{renderMessageContent(msg.content)}</div>
+                  )}
                 </div>
               </div>
             ))}

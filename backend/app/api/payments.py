@@ -15,7 +15,7 @@ router = APIRouter()
 # Dicionário fictício de preços no servidor (Inalterável pelo cliente)
 # Em produção, você consultaria do seu banco de dados ou regra de negócio
 PRICES_DB = {
-    "premium_subscription": Decimal("5000.00"),
+    "premium_subscription": Decimal("15000.00"),
     "exam_pack": Decimal("2500.00")
 }
 

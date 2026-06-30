@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import api, { getStorageUrl } from '@/lib/api';
-import { BookOpen, Search, Filter, Upload, FileText, CheckCircle2, AlertCircle, Plus, Eye, Zap, ArrowRight, GraduationCap } from 'lucide-react';
+import { BookOpen, Search, Filter, Upload, FileText, CheckCircle2, AlertCircle, Plus, Eye, Zap, ArrowRight, GraduationCap, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useModule } from '@/context/ModuleContext';
@@ -29,6 +29,8 @@ export default function ExamsPage() {
 
   // Forms
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [materialType, setMaterialType] = useState<'pdf' | 'video'>('pdf');
+  const [videoUrl, setVideoUrl] = useState('');
   const [uploadData, setUploadData] = useState({
     university: '',
     subject: '',
@@ -101,9 +103,21 @@ export default function ExamsPage() {
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFile) {
-      setErrorMsg("Por favor, seleciona o arquivo PDF.");
-      return;
+    
+    if (activeModule === 'high_school') {
+      if (materialType === 'pdf' && !uploadFile) {
+        setErrorMsg("Por favor, seleciona o arquivo PDF.");
+        return;
+      }
+      if (materialType === 'video' && !videoUrl.trim()) {
+        setErrorMsg("Por favor, insere a URL do vídeo do YouTube.");
+        return;
+      }
+    } else {
+      if (!uploadFile) {
+        setErrorMsg("Por favor, seleciona o arquivo PDF.");
+        return;
+      }
     }
     
     setLoading(true);
@@ -111,7 +125,9 @@ export default function ExamsPage() {
     setSuccessMsg('');
 
     const formData = new FormData();
-    formData.append("file", uploadFile);
+    if (uploadFile && (activeModule !== 'high_school' || materialType === 'pdf')) {
+      formData.append("file", uploadFile);
+    }
 
     try {
       if (activeModule === 'high_school') {
@@ -120,6 +136,9 @@ export default function ExamsPage() {
         formData.append("subject", uploadData.subject);
         formData.append("title", uploadData.title);
         formData.append("description", uploadData.description);
+        if (materialType === 'video') {
+          formData.append("video_url", videoUrl);
+        }
 
         await api.post('/materials', formData, {
           headers: {
@@ -149,6 +168,8 @@ export default function ExamsPage() {
 
       setShowUploadForm(false);
       setUploadFile(null);
+      setVideoUrl('');
+      setMaterialType('pdf');
       setUploadData({
         university: '',
         subject: '',
@@ -357,6 +378,18 @@ export default function ExamsPage() {
                       <option value={12} className="bg-lilac-dark text-white">12ª Classe</option>
                     </select>
                   </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Tipo de Material</label>
+                    <select
+                      className="w-full px-4 py-3 bg-lilac-dark/55 border border-lilac-light/20 rounded-xl focus:border-orange focus:ring-2 focus:ring-orange/20 outline-none text-sm cursor-pointer transition-all text-white font-semibold shadow-sm appearance-none"
+                      value={materialType}
+                      onChange={e => setMaterialType(e.target.value as 'pdf' | 'video')}
+                    >
+                      <option value="pdf" className="bg-lilac-dark text-white">Documento PDF (Manual/Ficha)</option>
+                      <option value="video" className="bg-lilac-dark text-white">Vídeo Aula (YouTube Link)</option>
+                    </select>
+                  </div>
                 </>
               ) : (
                 // FORMULÁRIO DO ENSINO SUPERIOR
@@ -449,16 +482,31 @@ export default function ExamsPage() {
                 </>
               )}
 
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Arquivo PDF</label>
-                <input
-                  type="file"
-                  required
-                  accept="application/pdf"
-                  className="w-full p-2 border border-lilac-light/20 rounded-xl focus:border-orange focus:ring-2 focus:ring-orange/20 text-sm bg-lilac-dark/55 transition-all cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-orange/10 file:text-orange hover:file:bg-orange/20 text-white"
-                  onChange={e => setUploadFile(e.target.files ? e.target.files[0] : null)}
-                />
-              </div>
+              {/* Arquivo ou Vídeo condicionado */}
+              {(activeModule !== 'high_school' || materialType === 'pdf') ? (
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Arquivo PDF</label>
+                  <input
+                    type="file"
+                    required
+                    accept="application/pdf"
+                    className="w-full p-2 border border-lilac-light/20 rounded-xl focus:border-orange focus:ring-2 focus:ring-orange/20 text-sm bg-lilac-dark/55 transition-all cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-orange/10 file:text-orange hover:file:bg-orange/20 text-white"
+                    onChange={e => setUploadFile(e.target.files ? e.target.files[0] : null)}
+                  />
+                </div>
+              ) : (
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-white/70 uppercase tracking-wider">URL do Vídeo do YouTube</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: https://www.youtube.com/watch?v=..."
+                    className="w-full px-4 py-3 bg-lilac-dark/55 border border-lilac-light/20 rounded-xl focus:border-orange focus:ring-2 focus:ring-orange/20 outline-none text-sm transition-all text-white font-semibold shadow-sm placeholder:text-white/30"
+                    value={videoUrl}
+                    onChange={e => setVideoUrl(e.target.value)}
+                  />
+                </div>
+              )}
 
               <div className="md:col-span-2 flex justify-end gap-4 pt-4">
                 <button
@@ -656,14 +704,25 @@ export default function ExamsPage() {
 
                 <div className="space-y-4 pt-4 border-t border-white/10 relative z-10">
                   <div className="flex gap-3">
-                    <a
-                      href={getFullPdfUrl(activeModule === 'high_school' ? item.file_url : item.pdf_url)}
-                      target="_blank"
-                      className="flex-1 bg-lilac-dark/60 text-white/80 px-4 py-3.5 rounded-xl font-bold hover:bg-lilac-dark/80 hover:border-orange/40 hover:text-orange transition-all text-sm flex items-center justify-center gap-2 border border-lilac-light/25 shadow-sm"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>Ver PDF</span>
-                    </a>
+                    {activeModule === 'high_school' && (item.file_url.startsWith('http') || item.file_url.includes('youtube.com') || item.file_url.includes('youtu.be')) ? (
+                      <a
+                        href={item.file_url}
+                        target="_blank"
+                        className="flex-1 bg-orange/10 border border-orange/20 text-orange px-4 py-3.5 rounded-xl font-bold hover:bg-orange hover:text-lilac-dark transition-all text-sm flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <Play className="w-4 h-4" />
+                        <span>Assistir Vídeo</span>
+                      </a>
+                    ) : (
+                      <a
+                        href={getFullPdfUrl(activeModule === 'high_school' ? item.file_url : item.pdf_url)}
+                        target="_blank"
+                        className="flex-1 bg-lilac-dark/60 text-white/80 px-4 py-3.5 rounded-xl font-bold hover:bg-lilac-dark/80 hover:border-orange/40 hover:text-orange transition-all text-sm flex items-center justify-center gap-2 border border-lilac-light/25 shadow-sm"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Ver PDF</span>
+                      </a>
+                    )}
                     
                     {activeModule !== 'high_school' && (
                       item.solved ? (

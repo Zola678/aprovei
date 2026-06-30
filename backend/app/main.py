@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 import logging
 import asyncio
-from app.api import auth, exams, teachers, forum, study, payments, ai, materials
+from app.api import auth, exams, teachers, forum, study, payments, ai, materials, classrooms
 from app.core.database import engine, Base
 from app.models.models import User, Exam, TeacherProfile, ForumPost, ForumComment, StudyTask, Payment, HighSchoolMaterial
 from slowapi import _rate_limit_exceeded_handler
@@ -53,6 +53,7 @@ app.include_router(study.router, prefix="/api/v1/study", tags=["study"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(materials.router, prefix="/api/v1/materials", tags=["materials"])
+app.include_router(classrooms.router, prefix="/api/v1/classrooms", tags=["classrooms"])
 
 # Garantir que a pasta storage existe e criar as subpastas
 os.makedirs("storage", exist_ok=True)

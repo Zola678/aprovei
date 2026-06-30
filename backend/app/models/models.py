@@ -137,3 +137,38 @@ class AIChatMessage(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     session = relationship("AIChatSession", back_populates="messages")
+
+
+class PostLike(Base):
+    __tablename__ = "post_likes"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    post_id = Column(Integer, ForeignKey("forum_posts.id"), nullable=False)
+
+
+class Classroom(Base):
+    __tablename__ = "classrooms"
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    subject = Column(String, nullable=False)
+    price = Column(DECIMAL(10, 2), default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    teacher = relationship("User", foreign_keys=[teacher_id])
+    enrollments = relationship("ClassroomEnrollment", back_populates="classroom", cascade="all, delete-orphan")
+
+
+class ClassroomEnrollment(Base):
+    __tablename__ = "classroom_enrollments"
+    id = Column(Integer, primary_key=True, index=True)
+    classroom_id = Column(Integer, ForeignKey("classrooms.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String, default="pending_payment") # 'pending_payment', 'pending_approval', 'approved', 'rejected'
+    payment_reference = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    classroom = relationship("Classroom", back_populates="enrollments")
+    student = relationship("User", foreign_keys=[student_id])
+

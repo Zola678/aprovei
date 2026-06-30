@@ -312,7 +312,7 @@ async def list_active_teachers(
     
     output = []
     for t in teachers:
-        from app.models.models import Teacher as TeacherModel
+        from app.models.models import TeacherProfile as TeacherModel
         stmt = select(TeacherModel).where(TeacherModel.user_id == t.id)
         res_profile = await db.execute(stmt)
         p = res_profile.scalars().first()

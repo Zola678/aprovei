@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.core.database import get_db
-from app.models.models import ForumPost as PostModel, ForumComment as CommentModel, User as UserModel
+from app.models.models import ForumPost as PostModel, ForumComment as CommentModel, User as UserModel, PostLike
 from app.schemas.forum import ForumPost, ForumPostCreate, ForumComment, ForumCommentCreate
 from app.api.deps import get_current_user
 
@@ -101,6 +101,22 @@ async def like_post(
     if not post:
         raise HTTPException(status_code=404, detail="Discussão não encontrada.")
         
-    post.likes += 1
+    # Verificar se o utilizador já deu like
+    like_stmt = select(PostLike).where(PostLike.user_id == current_user.id, PostLike.post_id == post_id)
+    like_res = await db.execute(like_stmt)
+    existing_like = like_res.scalars().first()
+    
+    if existing_like:
+        # Descurtir (remover like)
+        await db.delete(existing_like)
+        post.likes = max(0, post.likes - 1)
+        liked = False
+    else:
+        # Curtir (adicionar like)
+        new_like = PostLike(user_id=current_user.id, post_id=post_id)
+        db.add(new_like)
+        post.likes += 1
+        liked = True
+        
     await db.commit()
-    return {"likes": post.likes}
+    return {"likes": post.likes, "isLiked": liked}

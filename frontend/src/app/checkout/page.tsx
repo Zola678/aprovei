@@ -1,24 +1,65 @@
 "use client";
-import React, { useState } from 'react';
-import { CreditCard, Smartphone, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CreditCard, Smartphone, CheckCircle2, Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '@/lib/api';
 
 export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'express' | 'transfer'>('express');
   const [showExpressModal, setShowExpressModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'waiting' | 'success'>('idle');
+  const [transaction, setTransaction] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const packagePrice = 15000;
 
-  const handleExpressSubmit = (e: React.FormEvent) => {
+  const handleExpressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPaymentStatus('waiting');
+    setLoading(true);
+    setErrorMsg('');
     
-    // Simulate payment approval delay (e.g. user confirming on phone)
-    setTimeout(() => {
+    try {
+      const res = await api.post('/payments/initiate', {
+        item_type: 'premium_subscription'
+      });
+      setTransaction(res.data);
+      setPaymentStatus('waiting');
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.response?.data?.detail || "Erro ao iniciar o pagamento. Tenta novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const simulatePaymentApproval = async () => {
+    if (!transaction) return;
+    setLoading(true);
+    
+    try {
+      // Chama o webhook real do backend para comprovar o pagamento
+      await api.post('/payments/webhook', {
+        gateway_transaction_id: transaction.gateway_transaction_id,
+        status: 'completed'
+      });
+      
+      // Atualiza o utilizador local para premium
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const userObj = JSON.parse(storedUser);
+        userObj.is_premium = true;
+        localStorage.setItem('user', JSON.stringify(userObj));
+      }
+      
       setPaymentStatus('success');
-    }, 5000);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg("Erro ao processar a confirmação simulada.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -125,6 +166,11 @@ export default function CheckoutPage() {
                   </div>
                   
                   <form onSubmit={handleExpressSubmit} className="space-y-6">
+                    {errorMsg && (
+                      <div className="p-3 text-xs text-rose-400 bg-rose-950/40 rounded-xl border border-rose-800/40 font-bold">
+                        {errorMsg}
+                      </div>
+                    )}
                     <div className="text-left">
                       <label className="text-xs font-bold text-white/70 ml-1 uppercase tracking-wider">Número de Telemóvel</label>
                       <input 
@@ -136,8 +182,9 @@ export default function CheckoutPage() {
                         onChange={(e) => setPhoneNumber(e.target.value)}
                       />
                     </div>
-                    <button type="submit" className="w-full bg-orange hover:bg-orange/80 text-lilac-dark py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-orange/30">
-                      Enviar Pedido
+                    <button type="submit" disabled={loading} className="w-full bg-orange hover:bg-orange/80 text-lilac-dark py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-orange/30 flex items-center justify-center gap-2">
+                      {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                      <span>{loading ? 'Processando...' : 'Enviar Pedido'}</span>
                     </button>
                   </form>
                 </>
@@ -147,7 +194,26 @@ export default function CheckoutPage() {
                 <div className="text-center space-y-6 py-8">
                   <Loader2 className="w-16 h-16 text-orange animate-spin mx-auto" />
                   <h3 className="text-2xl font-black text-white font-title">Aguardando Aprovação</h3>
-                  <p className="text-white/60 font-medium leading-relaxed">Por favor, verifique o seu telemóvel e aprove o pagamento de {packagePrice.toLocaleString()} Kz no aplicativo Multicaixa Express.</p>
+                  <p className="text-white/60 font-medium leading-relaxed">
+                    A transação foi iniciada. Por favor, verifique o seu telemóvel e aprove o pagamento no aplicativo Multicaixa Express.
+                  </p>
+                  
+                  {transaction && (
+                    <div className="bg-lilac-dark/40 p-4 rounded-2xl border border-white/5 space-y-2 text-sm text-left">
+                      <p className="text-white/50"><strong>Referência:</strong> <span className="text-white font-bold tracking-wider">{transaction.payment_reference}</span></p>
+                      <p className="text-white/50"><strong>Entidade:</strong> <span className="text-white font-bold">{transaction.payment_entity}</span></p>
+                      <p className="text-white/50"><strong>Valor:</strong> <span className="text-orange font-black">{transaction.amount.toLocaleString()} Kz</span></p>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={simulatePaymentApproval}
+                    disabled={loading}
+                    className="w-full bg-green-500 hover:bg-green-400 text-lilac-dark py-3.5 rounded-xl font-bold transition-all shadow-md mt-6 flex items-center justify-center gap-2"
+                  >
+                    {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                    <span>Confirmar Pagamento (Simulado)</span>
+                  </button>
                 </div>
               )}
 
