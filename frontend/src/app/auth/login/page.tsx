@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { LogIn, Mail, Lock, ArrowRight, Shield, Award, Sparkles } from 'lucide-react';
+import { LogIn, Mail, Lock, ArrowRight, Shield, Award, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentSponsor, setCurrentSponsor] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -107,12 +108,20 @@ export default function LoginPage() {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/35 group-focus-within:text-orange transition-colors" />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-4 py-4 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
+                    className="w-full pl-12 pr-12 py-4 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
+                    value={formData.password}
                     onChange={e => setFormData({ ...formData, password: e.target.value })}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/35 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { UserPlus, Mail, Lock, User, Phone, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Phone, CheckCircle, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const sponsors = [
@@ -26,6 +26,9 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [currentSponsor, setCurrentSponsor] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +42,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    if (formData.password !== confirmPassword) {
+      setError('As senhas não coincidem. Por favor, verifique.');
+      setLoading(false);
+      return;
+    }
     
     try {
       if (formData.role === 'teacher') {
@@ -220,18 +229,51 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Senha (mín 8 chars)</label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/35 group-focus-within:text-orange transition-colors" />
-                    <input
-                      type="password"
-                      required
-                      minLength={8}
-                      placeholder="Cria uma senha segura"
-                      className="w-full pl-12 pr-4 py-3.5 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
-                      onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Senha (mín 8 chars)</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/35 group-focus-within:text-orange transition-colors" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        placeholder="Cria uma senha"
+                        className="w-full pl-12 pr-12 py-3.5 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
+                        value={formData.password}
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/35 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Confirmar Senha</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/35 group-focus-within:text-orange transition-colors" />
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        placeholder="Repete a senha"
+                        className="w-full pl-12 pr-12 py-3.5 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/35 hover:text-white transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
