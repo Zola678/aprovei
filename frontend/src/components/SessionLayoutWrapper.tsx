@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, BookOpen, Video, Users, MessageSquare, Calendar, Settings, LogOut, Search, Bell, Sparkles, Pin, PinOff, Bot, Menu, X } from 'lucide-react';
+import { Home, BookOpen, Video, Users, MessageSquare, Calendar, Settings, LogOut, Search, Bell, Sparkles, Pin, PinOff, Bot, Menu, X, User } from 'lucide-react';
 import { getStorageUrl } from '@/lib/api';
 
 export default function SessionLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -10,8 +10,20 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
   const [isPinned, setIsPinned] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -269,12 +281,51 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
                 <Bell className="w-5 h-5 text-white/60 group-hover:text-orange transition-colors" />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse"></span>
              </button>
-             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent p-0.5 cursor-pointer shadow-sm hover:shadow-md transition-shadow">
-               <img 
-                 src={user && user.photo_url ? getStorageUrl(user.photo_url) : "https://i.pravatar.cc/150?img=33"} 
-                 alt="Profile" 
-                 className="w-full h-full rounded-full border-2 border-white object-cover" 
-               />
+             <div className="relative" ref={profileRef}>
+               <div 
+                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                 className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent p-0.5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+               >
+                 <img 
+                   src={user && user.photo_url ? getStorageUrl(user.photo_url) : "https://i.pravatar.cc/150?img=33"} 
+                   alt="Profile" 
+                   className="w-full h-full rounded-full border-2 border-white object-cover" 
+                 />
+               </div>
+               
+               {isProfileMenuOpen && (
+                 <div className="absolute right-0 mt-3 w-64 bg-lilac-dark/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in slide-in-from-top-2 fade-in duration-200">
+                   <div className="px-4 py-3 border-b border-white/10">
+                     <p className="text-sm font-bold text-white truncate">{user?.name || "Utilizador"}</p>
+                     <p className="text-xs font-medium text-white/50 truncate">{user?.email || "email@aprovei.com"}</p>
+                     <div className="mt-2 inline-block px-2 py-1 bg-orange/10 border border-orange/20 rounded-md">
+                       <p className="text-[10px] font-black text-orange uppercase tracking-wider">{user?.role || "ESTUDANTE"}</p>
+                     </div>
+                   </div>
+                   <div className="px-2 py-2 flex flex-col gap-1">
+                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+                       <User className="w-4 h-4 text-white/50" />
+                       O meu Perfil
+                     </button>
+                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+                       <Settings className="w-4 h-4 text-white/50" />
+                       Configurações
+                     </button>
+                   </div>
+                   <div className="px-2 pt-2 pb-1 border-t border-white/10">
+                     <button 
+                       onClick={() => {
+                         setIsProfileMenuOpen(false);
+                         handleLogout();
+                       }}
+                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                     >
+                       <LogOut className="w-4 h-4" />
+                       Sair da Conta
+                     </button>
+                   </div>
+                 </div>
+               )}
              </div>
           </div>
         </div>
