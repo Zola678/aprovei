@@ -107,7 +107,7 @@ export default function SimulationPage() {
 
   if (configMode) {
     return (
-      <div className="w-full max-w-full px-4 py-6 md:p-8 flex items-center justify-center min-h-[calc(100vh-10rem)] sm:min-h-[80vh] relative z-10">
+      <div className="w-full max-w-full overflow-hidden px-4 py-6 md:p-8 flex items-center justify-center min-h-[calc(100vh-10rem)] sm:min-h-[80vh] relative z-10">
         {/* Background decorations */}
         <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-lilac-light/10 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-orange/5 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
@@ -115,7 +115,7 @@ export default function SimulationPage() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-xl max-w-2xl w-full z-10 relative overflow-hidden text-left p-6 sm:p-10 rounded-[2rem]"
+          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-xl max-w-2xl w-full z-10 relative overflow-hidden text-left p-5 sm:p-10 rounded-[2rem]"
         >
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
             <Brain className="w-48 h-48 text-white" />
@@ -182,7 +182,7 @@ export default function SimulationPage() {
   if (isFinished) {
     const percentage = Math.round((score / questions.length) * 100);
     return (
-      <div className="w-full max-w-full px-4 py-6 md:p-8 flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] sm:min-h-[80vh] relative z-10">
+      <div className="w-full max-w-full overflow-hidden px-4 py-6 md:p-8 flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] sm:min-h-[80vh] relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -206,16 +206,16 @@ export default function SimulationPage() {
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
             <button 
               onClick={() => router.push('/exams')}
-              className="flex-1 bg-lilac-dark/60 text-white font-bold py-4 rounded-2xl hover:bg-lilac-dark/80 transition-colors border border-lilac-light/20"
+              className="flex-1 bg-lilac-dark/60 text-white font-bold py-4 rounded-2xl hover:bg-lilac-dark/80 transition-colors border border-lilac-light/20 text-sm sm:text-base"
             >
               Voltar aos Exames
             </button>
             <button 
               onClick={() => setConfigMode(true)}
-              className="flex-1 bg-orange text-lilac-dark font-bold py-4 rounded-2xl hover:bg-orange/80 shadow-[0_0_15px_rgba(255,107,0,0.35)] transition-all flex items-center justify-center gap-2"
+              className="flex-1 bg-orange text-lilac-dark font-bold py-4 rounded-2xl hover:bg-orange/80 shadow-[0_0_15px_rgba(255,107,0,0.35)] transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <RefreshCcw className="w-5 h-5" />
               <span>Novo Simulacro</span>
@@ -229,7 +229,7 @@ export default function SimulationPage() {
   const question = questions[currentQuestionIndex];
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:py-10 px-4 sm:px-6 relative z-10">
+    <div className="max-w-4xl mx-auto py-6 sm:py-10 px-4 sm:px-6 relative z-10 overflow-hidden rounded-[2rem]">
       
       {/* Background decorations */}
       <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
@@ -322,7 +322,7 @@ export default function SimulationPage() {
                     }`}>
                       {String.fromCharCode(65 + idx)}
                     </span>
-                    <span className="text-xs sm:text-base font-medium leading-tight truncate-two-lines">{opt}</span>
+                    <span className="text-xs sm:text-base font-medium leading-tight line-clamp-2 whitespace-normal text-left">{opt}</span>
                   </div>
                   {icon}
                 </button>
@@ -334,7 +334,7 @@ export default function SimulationPage() {
             <button
               onClick={handleAnswerSubmit}
               disabled={selectedAnswer === null || isAnswered}
-              className={`px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-lg flex items-center gap-2 sm:gap-3 transition-all ${
+              className={`w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-lg flex items-center justify-center gap-2 sm:gap-3 transition-all ${
                 selectedAnswer === null || isAnswered
                   ? 'bg-lilac-dark/40 text-white/30 cursor-not-allowed border border-lilac-light/15 shadow-none'
                   : 'bg-orange text-lilac-dark hover:bg-orange/80 shadow-[0_0_15px_rgba(255,107,0,0.35)]'

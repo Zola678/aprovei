@@ -264,7 +264,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
 
       {/* Main Content Area */}
       <main className={`flex-1 w-full max-w-full relative px-0 sm:px-8 py-0 sm:py-8 h-screen flex flex-col ${
-        pathname === "/ai-chat" ? "overflow-hidden" : "overflow-y-auto custom-scrollbar"
+        pathname === "/ai-chat" ? "overflow-hidden" : "overflow-x-hidden overflow-y-auto custom-scrollbar"
       }`}>
         
         {/* Top Header Bar (Responsive: Stats/Profile on right, Logo/Brand on left for Mobile) */}
