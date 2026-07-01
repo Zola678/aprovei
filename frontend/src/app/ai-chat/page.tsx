@@ -37,8 +37,10 @@ export default function AIChatPage() {
   const [challengeError, setChallengeError] = useState("");
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);
     };
@@ -283,6 +285,17 @@ export default function AIChatPage() {
       );
     });
   };
+
+  if (!isMounted) {
+    return (
+      <div className="w-full flex-grow flex items-center justify-center min-h-[450px]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-orange/20 border-t-orange rounded-full animate-spin"></div>
+          <span className="text-sm font-bold text-white/50">A carregar IA...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={
