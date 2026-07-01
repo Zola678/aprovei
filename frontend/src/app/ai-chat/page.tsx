@@ -318,7 +318,7 @@ export default function AIChatPage() {
             /* ==========================================
                 MOBILE VIEW (100% WhatsApp Replica Layout)
                 ========================================== */
-            <div className="flex flex-col h-[calc(100vh-4rem)] w-full bg-[#0a050d] relative z-10 overflow-hidden">
+            <div className="flex flex-col flex-grow h-full w-full bg-[#0a050d] relative z-10 overflow-hidden">
               {mobileView === 'list' ? (
                 /* SCREEN 1: CHATS LIST (WhatsApp tab-like style) */
                 <div className="flex flex-col h-full w-full relative">
@@ -536,7 +536,7 @@ export default function AIChatPage() {
             /* ==========================================
                 1. DESKTOP VIEW (Premium 2-Column Grid Layout)
                 ========================================== */
-            <div className="grid grid-cols-12 gap-6 lg:gap-8 h-[calc(100vh-14rem)] min-h-[450px] relative z-10 w-full px-4">
+            <div className="grid grid-cols-12 gap-6 lg:gap-8 flex-grow h-full min-h-[450px] relative z-10 w-full px-4 pb-4">
               {/* Left Sidebar */}
               <div className="col-span-4 flex flex-col gap-6 h-full overflow-hidden">
                 <motion.div 

@@ -331,7 +331,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
         </div>
 
         {/* Child Page Contents */}
-        <div className={`flex-grow w-full max-w-full ${
+        <div className={`flex-grow flex flex-col w-full max-w-full ${
           pathname !== "/ai-chat" ? "pb-20" : ""
         }`}>
           {children}
