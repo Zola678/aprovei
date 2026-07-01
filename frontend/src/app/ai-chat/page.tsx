@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Bot, Send, User, Sparkles, AlertCircle, RefreshCw, BookOpen, GraduationCap, Plus, MessageSquare, LogIn, ArrowLeft } from "lucide-react";
+import { Bot, Send, User, Sparkles, AlertCircle, RefreshCw, BookOpen, GraduationCap, Plus, MessageSquare, LogIn, ArrowLeft, Paperclip, Volume2, VolumeX, FileText, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import { useModule } from "@/context/ModuleContext";
@@ -22,6 +22,101 @@ type ChatSession = {
 
 export default function AIChatPage() {
   const { activeModule } = useModule();
+  
+  // TTS & File Upload State variables
+  const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string } | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      synthRef.current = window.speechSynthesis;
+    }
+    return () => {
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+    };
+  }, []);
+
+  const handleSpeak = (msgId: number, text: string) => {
+    if (!synthRef.current) return;
+
+    if (playingMessageId === msgId) {
+      synthRef.current.cancel();
+      setPlayingMessageId(null);
+      return;
+    }
+
+    synthRef.current.cancel();
+    
+    // Clean markdown content for smooth text reading
+    const cleanText = text
+      .replace(/\[FILE:[^\]]+\]/g, "") // remove file references
+      .replace(/\*\*/g, "")
+      .replace(/-\s/g, "")
+      .replace(/#+/g, "");
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = "pt-PT";
+    
+    utterance.onend = () => {
+      setPlayingMessageId(null);
+    };
+    utterance.onerror = () => {
+      setPlayingMessageId(null);
+    };
+
+    utteranceRef.current = utterance;
+    setPlayingMessageId(msgId);
+    synthRef.current.speak(utterance);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("O ficheiro é muito grande. Máximo 10MB.");
+      return;
+    }
+
+    setUploadingFile(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/ai/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      setSelectedFile({
+        url: res.data.file_url,
+        name: res.data.filename,
+      });
+    } catch (err: any) {
+      console.error("Erro ao carregar arquivo", err);
+      alert(err.response?.data?.detail || "Falha ao carregar ficheiro.");
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const parseFileFromMessage = (msgContent: string) => {
+    const fileRegex = /^\[FILE:([^\]]+)\]\s*(.*)/;
+    const match = msgContent.match(fileRegex);
+    if (match) {
+      return {
+        fileUrl: match[1],
+        text: match[2],
+      };
+    }
+    return null;
+  };
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -163,17 +258,22 @@ export default function AIChatPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || activeSessionId === null) return;
+    if ((!input.trim() && !selectedFile) || activeSessionId === null) return;
 
     const userText = input;
+    const fileUrl = selectedFile?.url;
+    const fileName = selectedFile?.name;
+
     setInput("");
+    setSelectedFile(null);
     
     // Adicionar mensagem do utilizador localmente para resposta instantânea na tela
+    const contentWithFile = fileUrl ? `[FILE:${fileUrl}] ${userText || "Análise do Ficheiro"}` : userText;
     const tempUserMsg: Message = {
       id: Date.now(),
       session_id: activeSessionId,
       sender: "user",
-      content: userText
+      content: contentWithFile
     };
     setMessages(prev => [...prev, tempUserMsg]);
     setIsTyping(true);
@@ -181,7 +281,8 @@ export default function AIChatPage() {
     try {
       const res = await api.post("/ai/messages", {
         session_id: activeSessionId,
-        content: userText
+        content: userText || `Explique o ficheiro: ${fileName}`,
+        file_url: fileUrl || undefined
       });
       // Substituir/adicionar a resposta real da IA obtida do backend
       setMessages(prev => [...prev, res.data]);
@@ -324,10 +425,15 @@ export default function AIChatPage() {
                 <div className="flex flex-col h-full w-full relative">
                   {/* WhatsApp Header */}
                   <div className="bg-[#1c1422] border-b border-lilac-light/10 px-5 py-4 flex items-center justify-between shadow-md">
-                    <span className="font-black text-lg text-white font-title flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-orange animate-pulse" />
-                      APROVEI IA
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Link href="/dashboard" className="p-1.5 bg-white/5 border border-white/10 rounded-full text-white hover:text-orange transition-colors mr-1">
+                        <ArrowLeft className="w-4 h-4" />
+                      </Link>
+                      <span className="font-black text-lg text-white font-title flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-orange animate-pulse" />
+                        APROVEI IA
+                      </span>
+                    </div>
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => handleCreateSession()} 
@@ -468,6 +574,9 @@ export default function AIChatPage() {
                   >
                     {messages.map((msg) => {
                       const isUser = msg.sender === "user";
+                      const fileInfo = parseFileFromMessage(msg.content);
+                      const displayContent = fileInfo ? fileInfo.text : msg.content;
+                      
                       return (
                         <div
                           key={msg.id}
@@ -478,15 +587,48 @@ export default function AIChatPage() {
                               ? 'bg-orange text-lilac-dark rounded-[18px] rounded-tr-none text-left' 
                               : 'bg-[#1c1422] border border-lilac-light/10 text-white rounded-[18px] rounded-tl-none text-left'
                           }`}>
-                            {isUser ? (
-                              <p className="whitespace-pre-wrap text-sm font-semibold">{msg.content}</p>
-                            ) : (
-                              <div className="space-y-1.5 text-sm font-semibold leading-relaxed">
-                                {renderMessageContent(msg.content)}
+                            {fileInfo && (
+                              <div className="mb-2 p-2 bg-black/25 rounded-xl border border-white/10 flex items-center gap-2 text-left">
+                                <FileText className="w-7 h-7 text-orange shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <a 
+                                    href={fileInfo.fileUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-xs font-bold text-white hover:underline block truncate"
+                                  >
+                                    Ver Ficheiro Carregado
+                                  </a>
+                                  <span className="text-[9px] text-white/50 font-bold block">
+                                    {fileInfo.fileUrl.endsWith(".pdf") ? "Documento PDF" : "Imagem/Anexo"}
+                                  </span>
+                                </div>
                               </div>
                             )}
-                            <div className="text-[9px] text-right mt-1.5 opacity-55 font-bold leading-none select-none">
-                              Hoje ✓✓
+                            {isUser ? (
+                              <p className="whitespace-pre-wrap text-sm font-semibold">{displayContent}</p>
+                            ) : (
+                              <div className="space-y-1.5 text-sm font-semibold leading-relaxed">
+                                {renderMessageContent(displayContent)}
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between gap-4 mt-1.5 opacity-70">
+                              {!isUser && (
+                                <button 
+                                  onClick={() => handleSpeak(msg.id, displayContent)}
+                                  className="text-white/40 hover:text-orange transition-colors p-1"
+                                  title="Ouvir Resposta"
+                                >
+                                  {playingMessageId === msg.id ? (
+                                    <VolumeX className="w-3.5 h-3.5 text-orange" />
+                                  ) : (
+                                    <Volume2 className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                              )}
+                              <div className="text-[9px] text-right ml-auto opacity-55 font-bold leading-none select-none">
+                                Hoje ✓✓
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -506,20 +648,59 @@ export default function AIChatPage() {
 
                   {/* Input area */}
                   <div className="p-3 bg-[#130a18] border-t border-lilac-light/10 shrink-0">
+                    {/* File preview box */}
+                    {selectedFile && (
+                      <div className="mx-2 mb-2 p-2 bg-[#1c1422]/90 border border-orange/30 rounded-xl flex items-center justify-between gap-2 shadow-lg">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-5 h-5 text-orange shrink-0" />
+                          <span className="text-xs text-white font-bold truncate">{selectedFile.name}</span>
+                        </div>
+                        <button 
+                          onClick={() => setSelectedFile(null)}
+                          className="p-1 hover:bg-white/10 rounded-full text-white/50 hover:text-white"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    {uploadingFile && (
+                      <div className="mx-2 mb-2 p-2 bg-[#1c1422]/90 rounded-xl flex items-center gap-2">
+                        <div className="w-3.5 h-3.5 border-2 border-orange/20 border-t-orange rounded-full animate-spin"></div>
+                        <span className="text-xs text-white/50 font-bold">A carregar ficheiro...</span>
+                      </div>
+                    )}
+
                     <form onSubmit={handleSend} className="flex items-center gap-2">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        className="hidden" 
+                        accept=".pdf,image/*,.txt" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isTyping || uploadingFile || activeSessionId === null}
+                        className="w-12 h-12 bg-[#1c1422] border border-lilac-light/20 hover:border-orange text-white hover:text-orange rounded-full flex items-center justify-center shrink-0 shadow-inner transition-colors"
+                        title="Anexar ficheiro"
+                      >
+                        <Paperclip className="w-5 h-5" />
+                      </button>
+                      
                       <div className="flex-1 bg-[#1c1422] border border-lilac-light/20 rounded-full px-5 py-3 flex items-center shadow-inner">
                         <input
                           type="text"
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
-                          placeholder="Mensagem..."
+                          placeholder={selectedFile ? "Legenda ou enviar..." : "Mensagem..."}
                           className="w-full bg-transparent focus:outline-none text-sm text-white placeholder-white/40 font-medium"
                           disabled={isTyping || activeSessionId === null}
                         />
                       </div>
                       <button
                         type="submit"
-                        disabled={!input.trim() || isTyping || activeSessionId === null}
+                        disabled={(!input.trim() && !selectedFile) || isTyping || activeSessionId === null}
                         className="w-12 h-12 bg-orange text-lilac-dark rounded-full flex items-center justify-center shrink-0 shadow-lg active:scale-90 transition-transform disabled:opacity-40 disabled:scale-100"
                       >
                         <Send className="w-5 h-5 text-lilac-dark ml-0.5" />
@@ -545,11 +726,17 @@ export default function AIChatPage() {
                   className="bg-gradient-to-br from-lilac-base to-lilac-dark rounded-[2rem] p-6 text-white shadow-lg relative overflow-hidden flex-shrink-0 border border-lilac-light/20"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-xl -mr-10 -mt-10"></div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      <Sparkles className="w-5 h-5 text-white" />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <Sparkles className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-black font-title tracking-wide text-lg text-beam-effect">APROVEI IA</span>
                     </div>
-                    <span className="font-black font-title tracking-wide text-lg text-beam-effect">APROVEI IA</span>
+                    <Link href="/dashboard" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white/60 hover:text-white bg-white/5 border border-white/10 rounded-xl transition-all">
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Voltar ao Painel</span>
+                    </Link>
                   </div>
                   <p className="text-white/85 text-sm font-medium leading-relaxed">
                     Tutor inteligente adaptado às metas do {activeModule === "high_school" ? "Ensino Médio 🎒" : "Acesso Superior 🎓"}.
@@ -672,23 +859,62 @@ export default function AIChatPage() {
                   ref={chatContainerRef}
                   className="flex-1 overflow-y-auto p-8 space-y-6 bg-lilac-dark/25 custom-scrollbar"
                 >
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex gap-4 max-w-[85%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-sm ${msg.sender === "user" ? "bg-orange text-lilac-dark" : "bg-gradient-to-br from-lilac-light to-lilac-base text-white border border-lilac-light/30"}`}>
-                        {msg.sender === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                  {messages.map((msg) => {
+                    const isUser = msg.sender === "user";
+                    const fileInfo = parseFileFromMessage(msg.content);
+                    const displayContent = fileInfo ? fileInfo.text : msg.content;
+                    
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex gap-4 max-w-[85%] ${isUser ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-sm ${isUser ? "bg-orange text-lilac-dark" : "bg-gradient-to-br from-lilac-light to-lilac-base text-white border border-lilac-light/30"}`}>
+                          {isUser ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                        </div>
+                        <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-semibold ${isUser ? "bg-gradient-to-r from-orange to-amber-500 text-lilac-dark rounded-tr-sm shadow-[0_5px_15px_rgba(255,107,0,0.2)]" : "bg-lilac-dark/60 border border-lilac-light/30 text-white rounded-tl-sm shadow-sm"}`}>
+                          {fileInfo && (
+                            <div className="mb-3 p-2.5 bg-black/25 rounded-xl border border-white/10 flex items-center gap-3 text-left">
+                              <FileText className="w-8 h-8 text-orange shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <a 
+                                  href={fileInfo.fileUrl} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="text-xs font-bold text-white hover:underline block truncate"
+                                >
+                                  Ver Ficheiro Carregado
+                                </a>
+                                <span className="text-[9px] text-white/50 font-bold block">
+                                  {fileInfo.fileUrl.endsWith(".pdf") ? "Documento PDF" : "Imagem/Anexo"}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {isUser ? (
+                            <p className="whitespace-pre-wrap font-medium text-left">{displayContent}</p>
+                          ) : (
+                            <>
+                              <div className="space-y-1.5">{renderMessageContent(displayContent)}</div>
+                              <div className="flex justify-end mt-3 pt-2 border-t border-white/5">
+                                <button 
+                                  onClick={() => handleSpeak(msg.id, displayContent)}
+                                  className="text-white/40 hover:text-orange transition-colors p-1"
+                                  title={playingMessageId === msg.id ? "Parar leitura" : "Ouvir resposta"}
+                                >
+                                  {playingMessageId === msg.id ? (
+                                    <VolumeX className="w-4 h-4 text-orange" />
+                                  ) : (
+                                    <Volume2 className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-semibold ${msg.sender === "user" ? "bg-gradient-to-r from-orange to-amber-500 text-lilac-dark rounded-tr-sm shadow-[0_5px_15px_rgba(255,107,0,0.2)]" : "bg-lilac-dark/60 border border-lilac-light/30 text-white rounded-tl-sm shadow-sm"}`}>
-                        {msg.sender === "user" ? (
-                          <p className="whitespace-pre-wrap font-medium text-left">{msg.content}</p>
-                        ) : (
-                          <div className="space-y-1.5">{renderMessageContent(msg.content)}</div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   
                   {isTyping && (
                     <motion.div
@@ -710,25 +936,68 @@ export default function AIChatPage() {
                 </div>
 
                 <div className="p-5 bg-lilac-dark/40 border-t border-lilac-light/20 flex-shrink-0">
-                  <form onSubmit={handleSend} className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder={activeModule === "high_school" 
-                        ? "Pergunta sobre Matemática, Física, ITEL, 10ª classe..."
-                        : "Pergunta sobre exames UAN, ISUTIC, limites notáveis, mecânica..."
-                      }
-                      className="w-full pl-5 pr-14 py-4 bg-lilac-dark/60 border border-lilac-light/20 rounded-2xl focus:outline-none focus:border-orange/55 focus:ring-4 focus:ring-orange/15 text-sm font-semibold text-white placeholder-white/40 transition-all shadow-inner"
-                      disabled={isTyping || activeSessionId === null}
+                  {/* Desktop File preview box */}
+                  {selectedFile && (
+                    <div className="mb-3 p-3 bg-lilac-dark/60 border border-orange/40 rounded-xl flex items-center justify-between gap-3 shadow-lg max-w-md">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileText className="w-5 h-5 text-orange shrink-0" />
+                        <span className="text-xs text-white font-bold truncate">{selectedFile.name}</span>
+                      </div>
+                      <button 
+                        onClick={() => setSelectedFile(null)}
+                        className="p-1 hover:bg-white/10 rounded-full text-white/50 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  {uploadingFile && (
+                    <div className="mb-3 p-3 bg-lilac-dark/60 rounded-xl flex items-center gap-3">
+                      <div className="w-4 h-4 border-2 border-orange/20 border-t-orange rounded-full animate-spin"></div>
+                      <span className="text-xs text-white/50 font-bold">A carregar ficheiro para a IA resolver...</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSend} className="relative flex items-center gap-3">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      className="hidden" 
+                      accept=".pdf,image/*,.txt" 
                     />
                     <button
-                      type="submit"
-                      disabled={!input.trim() || isTyping || activeSessionId === null}
-                      className="absolute right-2.5 p-2.5 bg-orange text-lilac-dark rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isTyping || uploadingFile || activeSessionId === null}
+                      className="p-4 bg-lilac-dark/60 border border-lilac-light/20 hover:border-orange text-white hover:text-orange rounded-2xl flex items-center justify-center shrink-0 transition-colors shadow-inner"
+                      title="Anexar prova/imagem"
                     >
-                      <Send className="w-4.5 h-4.5 ml-0.5 text-lilac-dark" />
+                      <Paperclip className="w-5 h-5" />
                     </button>
+
+                    <div className="relative flex-grow flex items-center">
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder={selectedFile 
+                          ? `Legenda para o ficheiro ${selectedFile.name}...` 
+                          : (activeModule === "high_school" 
+                              ? "Pergunta sobre Matemática, Física, ITEL, 10ª classe..."
+                              : "Pergunta sobre exames UAN, ISUTIC, limites notáveis, mecânica...")
+                        }
+                        className="w-full pl-5 pr-14 py-4 bg-lilac-dark/60 border border-lilac-light/20 rounded-2xl focus:outline-none focus:border-orange/55 focus:ring-4 focus:ring-orange/15 text-sm font-semibold text-white placeholder-white/40 transition-all shadow-inner"
+                        disabled={isTyping || activeSessionId === null}
+                      />
+                      <button
+                        type="submit"
+                        disabled={(!input.trim() && !selectedFile) || isTyping || activeSessionId === null}
+                        className="absolute right-2.5 p-2.5 bg-orange text-lilac-dark rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+                      >
+                        <Send className="w-4.5 h-4.5 ml-0.5 text-lilac-dark" />
+                      </button>
+                    </div>
                   </form>
                   <div className="text-center mt-3 flex items-center justify-center gap-1.5 text-[10px] font-bold text-white/50">
                     <AlertCircle className="w-3.5 h-3.5 text-orange" />

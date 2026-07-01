@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
@@ -11,12 +11,19 @@ from app.core.limiter import limiter
 import asyncio
 import random
 import httpx
+import os
+import shutil
+import uuid
+import base64
+import mimetypes
 
 router = APIRouter()
 
 class AIChatMessageCreate(BaseModel):
     session_id: int
     content: str
+    file_url: str | None = None
+    file_url: str | None = None
 
 class AIChatSessionCreate(BaseModel):
     title: str = "Nova Conversa de Estudos"
@@ -50,7 +57,8 @@ async def generate_ai_response(
     educational_level: str,
     session_title: str = "",
     answer_key: str | None = None,
-    questions_text: str | None = None
+    questions_text: str | None = None,
+    file_url: str | None = None
 ) -> str:
     """
     Gera uma resposta da IA utilizando o motor LUNAR local de forma nativa.
@@ -122,6 +130,7 @@ async def generate_ai_response(
             system_prompt += math_formatting_rule
 
             # 2. Formatar o histórico para o formato aceitado pela API do Gemini
+            import re
             contents = []
             for msg in history:
                 role = "user" if msg.sender == "user" else "model"
@@ -130,22 +139,58 @@ async def generate_ai_response(
                 if not contents and role == "model":
                     continue
                 
+                # Limpar a marcação de arquivo para o histórico da IA não ter raw URLs
+                clean_msg_content = re.sub(r'\[FILE:[^\]]+\]', '[Ficheiro Anexado]', msg.content)
+                
                 # Se a última mensagem adicionada tiver o mesmo remetente (role), concatena o conteúdo
                 if contents and contents[-1]["role"] == role:
-                    contents[-1]["parts"][0]["text"] += "\n" + msg.content
+                    contents[-1]["parts"][0]["text"] += "\n" + clean_msg_content
                 else:
                     contents.append({
                         "role": role,
-                        "parts": [{"text": msg.content}]
+                        "parts": [{"text": clean_msg_content}]
                     })
             
+            # 2.5 Processar anexo de ficheiro da mensagem atual
+            file_part = None
+            if file_url:
+                local_path = file_url.replace("/storage/", "storage/").split("?")[0]
+                if local_path.startswith("/"):
+                    local_path = local_path[1:]
+                
+                if os.path.exists(local_path):
+                    try:
+                        with open(local_path, "rb") as f:
+                            file_data = f.read()
+                        encoded_data = base64.b64encode(file_data).decode("utf-8")
+                        mime_type, _ = mimetypes.guess_type(local_path)
+                        if not mime_type:
+                            if local_path.endswith(".pdf"):
+                                mime_type = "application/pdf"
+                            else:
+                                mime_type = "application/octet-stream"
+                        
+                        file_part = {
+                            "inlineData": {
+                                "mimeType": mime_type,
+                                "data": encoded_data
+                            }
+                        }
+                    except Exception as e:
+                        print(f"Erro ao ler anexo para a IA: {e}")
+
             # Adicionar a mensagem atual do utilizador
+            user_parts = []
+            if file_part:
+                user_parts.append(file_part)
+            user_parts.append({"text": user_input})
+
             if contents and contents[-1]["role"] == "user":
-                contents[-1]["parts"][0]["text"] += "\n" + user_input
+                contents[-1]["parts"].extend(user_parts)
             else:
                 contents.append({
                     "role": "user",
-                    "parts": [{"text": user_input}]
+                    "parts": user_parts
                 })
             
             # 3. Fazer a chamada HTTP assíncrona
@@ -158,7 +203,7 @@ async def generate_ai_response(
             }
             
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, json=payload, timeout=12.0)
+                response = await client.post(url, json=payload, timeout=30.0)
                 
             if response.status_code == 200:
                 data = response.json()
@@ -383,6 +428,39 @@ async def list_chat_sessions(
     sessions = result.scalars().all()
     return sessions
 
+@router.post("/upload")
+@limiter.limit("10/minute")
+async def upload_chat_file(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Permite ao estudante carregar ficheiros (PDF, TXT ou Imagens) para a IA ensinar a resolver"""
+    # 1. Validar extensão
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    allowed_extensions = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".txt"}
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Extensão não permitida. Use PDF, TXT ou Imagens (PNG, JPG, WEBP).")
+        
+    # 2. Validar tamanho (máx 10MB)
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    if file_size > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="O arquivo é grande demais. Máximo 10MB.")
+        
+    # 3. Guardar o ficheiro
+    upload_dir = "storage/ai_uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_name = f"{uuid.uuid4()}{file_ext}"
+    file_path = os.path.join(upload_dir, file_name)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    file_url = f"/storage/ai_uploads/{file_name}"
+    return {"file_url": file_url, "filename": file.filename}
+
 @router.post("/messages", response_model=AIChatMessageResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("20/minute")
 async def send_message(
@@ -400,8 +478,12 @@ async def send_message(
     if not session:
         raise HTTPException(status_code=404, detail="Sessão de chat não encontrada.")
         
-    # 2. Guardar a mensagem do utilizador na base de dados
-    user_msg = AIChatMessage(session_id=session.id, sender="user", content=msg_data.content)
+    # 2. Guardar a mensagem do utilizador na base de dados (com anexo)
+    db_content = msg_data.content
+    if msg_data.file_url:
+        db_content = f"[FILE:{msg_data.file_url}] {msg_data.content}"
+        
+    user_msg = AIChatMessage(session_id=session.id, sender="user", content=db_content)
     db.add(user_msg)
     await db.commit()
     await db.refresh(user_msg)
@@ -409,7 +491,7 @@ async def send_message(
     # 3. Buscar o histórico de mensagens desta sessão para servir de contexto à IA
     history_query = select(AIChatMessage).where(AIChatMessage.session_id == session.id).order_by(AIChatMessage.created_at.asc())
     history_result = await db.execute(history_query)
-    history = history_result.scalars().all()[:-1] # Excluir a última mensagem que acabamos de salvar para passá-la como 'user_input'
+    history = history_result.scalars().all()[:-1] # Excluir a última mensagem que acabamos de salvar
     
     # 3.5 Buscar informações da prova se for uma sessão de desafio
     answer_key = None
@@ -421,7 +503,7 @@ async def send_message(
         if exam:
             answer_key = exam.answer_key
             questions_text = exam.questions_text
-
+ 
     # 4. Chamar a IA (Gemini ou Fallback) de forma assíncrona
     ai_response_content = await generate_ai_response(
         user_input=msg_data.content,
@@ -429,7 +511,8 @@ async def send_message(
         educational_level=current_user.educational_level,
         session_title=session.title,
         answer_key=answer_key,
-        questions_text=questions_text
+        questions_text=questions_text,
+        file_url=msg_data.file_url
     )
     
     # 5. Guardar e retornar a resposta da IA

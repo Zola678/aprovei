@@ -72,6 +72,7 @@ os.makedirs("storage/exams", exist_ok=True)
 os.makedirs("storage/materials", exist_ok=True)
 os.makedirs("storage/photos", exist_ok=True)
 os.makedirs("storage/resumes", exist_ok=True)
+os.makedirs("storage/ai_uploads", exist_ok=True)
 
 # Servir arquivos estáticos do diretório storage
 app.mount("/storage", StaticFiles(directory="storage"), name="storage")
