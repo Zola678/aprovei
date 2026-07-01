@@ -75,10 +75,7 @@ export default function AIChatPage() {
     synthRef.current.speak(utterance);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFileDirectly = async (file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       alert("O ficheiro é muito grande. Máximo 10MB.");
       return;
@@ -103,6 +100,41 @@ export default function AIChatPage() {
       alert(err.response?.data?.detail || "Falha ao carregar ficheiro.");
     } finally {
       setUploadingFile(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await uploadFileDirectly(file);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1 || items[i].type.indexOf("pdf") !== -1 || items[i].type.indexOf("text") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          await uploadFileDirectly(file);
+          break;
+        }
+      }
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const allowedTypes = ["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"];
+      if (allowedTypes.includes(file.type) || file.name.endsWith(".pdf") || file.name.endsWith(".txt")) {
+        await uploadFileDirectly(file);
+      } else {
+        alert("Extensão não permitida. Use PDF, TXT ou Imagens.");
+      }
     }
   };
 
@@ -566,6 +598,8 @@ export default function AIChatPage() {
                   {/* Message History area */}
                   <div 
                     ref={chatContainerRef}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
                     className="flex-grow overflow-y-auto p-4 space-y-3 bg-[#0a050d] custom-scrollbar"
                     style={{
                       backgroundImage: "radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.015) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.015) 2%, transparent 0%)",
@@ -693,6 +727,7 @@ export default function AIChatPage() {
                           type="text"
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
+                          onPaste={handlePaste}
                           placeholder={selectedFile ? "Legenda ou enviar..." : "Mensagem..."}
                           className="w-full bg-transparent focus:outline-none text-sm text-white placeholder-white/40 font-medium"
                           disabled={isTyping || activeSessionId === null}
@@ -857,6 +892,8 @@ export default function AIChatPage() {
 
                 <div 
                   ref={chatContainerRef}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
                   className="flex-1 overflow-y-auto p-8 space-y-6 bg-lilac-dark/25 custom-scrollbar"
                 >
                   {messages.map((msg) => {
@@ -981,6 +1018,7 @@ export default function AIChatPage() {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onPaste={handlePaste}
                         placeholder={selectedFile 
                           ? `Legenda para o ficheiro ${selectedFile.name}...` 
                           : (activeModule === "high_school" 

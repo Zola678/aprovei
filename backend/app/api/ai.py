@@ -158,6 +158,8 @@ async def generate_ai_response(
                 if local_path.startswith("/"):
                     local_path = local_path[1:]
                 
+                print(f"[DEBUG AI ATTACHMENT] URL: {file_url} -> Local Path: {local_path} | Exists: {os.path.exists(local_path)} | CWD: {os.getcwd()}")
+                
                 if os.path.exists(local_path):
                     try:
                         with open(local_path, "rb") as f:
@@ -176,8 +178,11 @@ async def generate_ai_response(
                                 "data": encoded_data
                             }
                         }
+                        print(f"[DEBUG AI ATTACHMENT] File loaded successfully. Mime: {mime_type}, Size: {len(file_data)} bytes")
                     except Exception as e:
                         print(f"Erro ao ler anexo para a IA: {e}")
+                else:
+                    print(f"[DEBUG AI ATTACHMENT] WARNING: File path does not exist on disk!")
 
             # Adicionar a mensagem atual do utilizador
             user_parts = []
