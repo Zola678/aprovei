@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.models.models import User, AIChatSession, AIChatMessage, Exam as ExamModel
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.limiter import limiter
 import asyncio
 import random
 import httpx
@@ -341,7 +342,9 @@ async def generate_ai_response(
 
 
 @router.post("/sessions", response_model=AIChatSessionResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("15/minute")
 async def create_chat_session(
+    request: Request,
     session_data: AIChatSessionCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -381,7 +384,9 @@ async def list_chat_sessions(
     return sessions
 
 @router.post("/messages", response_model=AIChatMessageResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
 async def send_message(
+    request: Request,
     msg_data: AIChatMessageCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -456,7 +461,9 @@ async def get_session_messages(
     return messages
 
 @router.post("/sessions/exam-challenge", response_model=AIChatSessionResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def create_exam_challenge_session(
+    request: Request,
     challenge_data: ExamChallengeCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)

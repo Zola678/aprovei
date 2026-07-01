@@ -13,7 +13,7 @@ from app.core.security import get_password_hash, verify_password, create_access_
 from app.models.models import User as UserModel
 from app.schemas.user import UserCreate, User
 from app.core.limiter import limiter
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 UPLOAD_PHOTO_DIR = "storage/photos"
 
@@ -21,7 +21,7 @@ router = APIRouter()
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., max_length=128)
 
 class SocialLoginRequest(BaseModel):
     provider: str # 'google' ou 'github'
@@ -84,9 +84,21 @@ async def register_teacher(
     if not photo.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Apenas arquivos de imagem são permitidos.")
         
-    file_ext = os.path.splitext(photo.filename)[1]
+    file_ext = os.path.splitext(photo.filename)[1].lower()
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Extensão de arquivo não permitida. Use JPG, PNG ou WEBP.")
+        
     file_name = f"{uuid.uuid4()}{file_ext}"
     file_path = os.path.join(UPLOAD_PHOTO_DIR, file_name)
+    
+    # 2.1 Limitar o tamanho do ficheiro (opcional mas recomendado)
+    photo.file.seek(0, 2)
+    file_size = photo.file.tell()
+    photo.file.seek(0)
+    if file_size > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="A imagem é demasiado grande (máximo 5MB).")
+
     
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(photo.file, buffer)
@@ -173,6 +185,12 @@ async def social_login(request: Request, credentials: SocialLoginRequest, db: As
             if resp.status_code != 200:
                 raise HTTPException(status_code=400, detail="Token do Google inválido ou expirado.")
             data = resp.json()
+            
+            # Prevenção contra a vulnerabilidade "Confused Deputy" (CWE-346 / CWE-290)
+            expected_aud = os.getenv("GOOGLE_CLIENT_ID")
+            if expected_aud and data.get("aud") != expected_aud:
+                raise HTTPException(status_code=400, detail="Token do Google não foi emitido para esta aplicação (Audience mismatch).")
+                
             email = data.get("email")
             full_name = data.get("name")
             
