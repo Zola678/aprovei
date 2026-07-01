@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bot, Send, User, Sparkles, AlertCircle, RefreshCw, BookOpen, GraduationCap, Plus, MessageSquare, LogIn, ArrowLeft, Paperclip, Volume2, VolumeX, FileText, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import api from "@/lib/api";
+import api, { getStorageUrl } from "@/lib/api";
 import { useModule } from "@/context/ModuleContext";
 import Link from "next/link";
 
@@ -61,7 +61,19 @@ export default function AIChatPage() {
       .replace(/#+/g, "");
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = "pt-PT";
+    
+    // Obter vozes do navegador dinamicamente
+    const voices = synthRef.current ? synthRef.current.getVoices() : [];
+    const ptVoices = voices.filter(v => v.lang.toLowerCase().startsWith("pt"));
+    // Procura prioritária por vozes premium/fluidas (Google ou Natural)
+    const fluidVoice = ptVoices.find(v => v.name.toLowerCase().includes("google") || v.name.toLowerCase().includes("natural")) || ptVoices[0];
+    
+    if (fluidVoice) {
+      utterance.voice = fluidVoice;
+      utterance.lang = fluidVoice.lang;
+    } else {
+      utterance.lang = "pt-PT";
+    }
     
     utterance.onend = () => {
       setPlayingMessageId(null);
@@ -626,7 +638,7 @@ export default function AIChatPage() {
                                 <FileText className="w-7 h-7 text-orange shrink-0" />
                                 <div className="min-w-0 flex-1">
                                   <a 
-                                    href={fileInfo.fileUrl} 
+                                    href={getStorageUrl(fileInfo.fileUrl)} 
                                     target="_blank" 
                                     rel="noreferrer" 
                                     className="text-xs font-bold text-white hover:underline block truncate"
@@ -915,7 +927,7 @@ export default function AIChatPage() {
                               <FileText className="w-8 h-8 text-orange shrink-0" />
                               <div className="min-w-0 flex-1">
                                 <a 
-                                  href={fileInfo.fileUrl} 
+                                  href={getStorageUrl(fileInfo.fileUrl)} 
                                   target="_blank" 
                                   rel="noreferrer" 
                                   className="text-xs font-bold text-white hover:underline block truncate"

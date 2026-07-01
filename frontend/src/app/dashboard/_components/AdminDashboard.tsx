@@ -344,36 +344,63 @@ export default function AdminDashboard({ user }: { user: any }) {
                 Nenhum estudante registado na base de dados.
               </p>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-white/10">
-                <table className="w-full text-left border-collapse whitespace-nowrap">
-                  <thead>
-                    <tr className="bg-white/5 text-white/50 text-xs font-bold uppercase tracking-wider">
-                      <th className="p-4 border-b border-white/10">Nome Completo</th>
-                      <th className="p-4 border-b border-white/10">E-mail</th>
-                      <th className="p-4 border-b border-white/10">Telefone</th>
-                      <th className="p-4 border-b border-white/10">Plano de Acesso</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-white/80 text-sm font-semibold divide-y divide-white/5">
-                    {students.map((student) => (
-                      <tr key={student.id} className="hover:bg-white/5 transition-colors">
-                        <td className="p-4">{student.full_name}</td>
-                        <td className="p-4 text-white/60">{student.email}</td>
-                        <td className="p-4 text-white/60">{student.phone || "Não informado"}</td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            student.is_premium 
-                              ? 'bg-orange/10 border border-orange/20 text-orange shadow-sm'
-                              : 'bg-white/5 border border-white/10 text-white/60'
-                          }`}>
-                            {student.is_premium ? 'Premium ⭐' : 'Gratuito 📚'}
-                          </span>
-                        </td>
+              <>
+                {/* Mobile Card View (hidden on sm/desktop) */}
+                <div className="grid gap-4 grid-cols-1 sm:hidden">
+                  {students.map((student) => (
+                    <div key={student.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5">
+                      <div className="flex justify-between items-center">
+                        <div className="font-bold text-white text-base">{student.full_name}</div>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          student.is_premium 
+                            ? 'bg-orange/10 border border-orange/20 text-orange shadow-sm'
+                            : 'bg-white/5 border border-white/10 text-white/60'
+                        }`}>
+                          {student.is_premium ? 'Premium ⭐' : 'Gratuito 📚'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-white/60">
+                        <span className="font-bold text-white/40 block sm:inline">E-mail:</span> {student.email}
+                      </div>
+                      <div className="text-xs text-white/60">
+                        <span className="font-bold text-white/40 block sm:inline">Telefone:</span> {student.phone || "Não informado"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table View (hidden on mobile) */}
+                <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10">
+                  <table className="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-white/5 text-white/50 text-xs font-bold uppercase tracking-wider">
+                        <th className="p-4 border-b border-white/10">Nome Completo</th>
+                        <th className="p-4 border-b border-white/10">E-mail</th>
+                        <th className="p-4 border-b border-white/10">Telefone</th>
+                        <th className="p-4 border-b border-white/10">Plano de Acesso</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="text-white/80 text-sm font-semibold divide-y divide-white/5">
+                      {students.map((student) => (
+                        <tr key={student.id} className="hover:bg-white/5 transition-colors">
+                          <td className="p-4">{student.full_name}</td>
+                          <td className="p-4 text-white/60">{student.email}</td>
+                          <td className="p-4 text-white/60">{student.phone || "Não informado"}</td>
+                          <td className="p-4">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                              student.is_premium 
+                                ? 'bg-orange/10 border border-orange/20 text-orange shadow-sm'
+                                : 'bg-white/5 border border-white/10 text-white/60'
+                            }`}>
+                              {student.is_premium ? 'Premium ⭐' : 'Gratuito 📚'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}

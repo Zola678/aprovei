@@ -11,8 +11,17 @@ const api = axios.create({
 export const getStorageUrl = (path: string | null | undefined): string => {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-  // Remove o sufixo /api/v1 ou /api para obter a URL base do backend
+  
+  let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  
+  // Se estivermos no navegador, substitui localhost pelo hostname real para funcionar no mobile/rede local
+  if (typeof window !== 'undefined') {
+    const currentHostname = window.location.hostname;
+    if (currentHostname && currentHostname !== 'localhost' && apiUrl.includes('localhost')) {
+      apiUrl = apiUrl.replace('localhost', currentHostname);
+    }
+  }
+  
   const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
   const cleanPath = path.startsWith('/') ? path.substring(1) : path;
   return `${baseUrl}/${cleanPath}`;
