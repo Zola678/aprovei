@@ -164,9 +164,16 @@ async def generate_ai_response(
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
                 return text
             else:
-                print(f"Erro na API do Gemini: Status {response.status_code} - {response.text}")
+                error_msg = f"Erro na API do Gemini: {response.status_code} - {response.text}"
+                print(error_msg)
+                return f"Lamento, mas encontrei um erro ao conectar ao servidor da IA na nuvem. Detalhe técnico: {response.status_code}. Se estiver no Railway, verifique se a GEMINI_API_KEY está correta e se a região do servidor tem suporte para a API da Google."
         except Exception as e:
-            print(f"Exceção ao ligar à API do Gemini: {str(e)}")
+            error_msg = f"Exceção ao ligar à API do Gemini: {str(e)}"
+            print(error_msg)
+            return "Desculpe, ocorreu uma falha de conexão interna ao tentar contactar o motor de inteligência artificial. Por favor, tente novamente em instantes."
+            
+    else:
+        return "A chave da API Gemini (GEMINI_API_KEY) não foi encontrada nas variáveis de ambiente do Railway. Por favor, configure-a no painel do Railway e reinicie o servidor para que eu possa responder às suas perguntas!"
             
     # --- MOTOR DE RESPOSTA LOCAL DE FALLBACK (Altamente robusto e contextualizado) ---
     if is_challenge:

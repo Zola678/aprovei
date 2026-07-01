@@ -105,9 +105,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         
     friendly_detail = " | ".join(error_messages) if error_messages else "Dados inválidos."
 
+    safe_errors = []
+    for e in exc.errors():
+        err = dict(e)
+        if "input" in err and isinstance(err["input"], bytes):
+            err["input"] = err["input"].decode("utf-8", "ignore")
+        safe_errors.append(err)
+
     return JSONResponse(
         status_code=422,
-        content={"detail": friendly_detail, "errors": jsonable_encoder(exc.errors())},
+        content={"detail": friendly_detail, "errors": jsonable_encoder(safe_errors)},
     )
 
 @app.get("/health")
