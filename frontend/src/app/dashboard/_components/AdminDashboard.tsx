@@ -247,7 +247,7 @@ export default function AdminDashboard({ user }: { user: any }) {
                 {pending.map((candidate) => (
                   <div key={candidate.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 justify-between items-start">
                     <div className="flex gap-3 sm:gap-4 items-start flex-1 min-w-0 w-full">
-                      {candidate.photo_url ? (
+                      {candidate.photo_url && candidate.photo_url !== "null" && candidate.photo_url !== "undefined" ? (
                         <img 
                           src={getStorageUrl(candidate.photo_url)} 
                           alt={candidate.full_name} 
@@ -389,8 +389,8 @@ export default function AdminDashboard({ user }: { user: any }) {
               <div className="grid gap-6 md:grid-cols-2">
                 {activeTeachers.map((teacher) => (
                   <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex gap-3 sm:gap-4 items-start min-w-0">
-                    {teacher.photo_url ? (
-                      <img 
+                    {teacher.photo_url && teacher.photo_url !== "null" && teacher.photo_url !== "undefined" ? (
+                        <img 
                         src={getStorageUrl(teacher.photo_url)} 
                         alt={teacher.full_name} 
                         className="w-16 h-16 rounded-xl object-cover border border-orange/30 shadow-md shrink-0"

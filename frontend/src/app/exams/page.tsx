@@ -243,14 +243,20 @@ export default function ExamsPage() {
               <BookOpen className="w-8 h-8" />
             </div>
             <span>
-              {activeModule === "high_school" ? "Biblioteca do Ensino Médio" : "Banco de Provas"}
+              {user?.role === "admin" 
+                ? "Gestão Global de Provas e Materiais" 
+                : (activeModule === "high_school" ? "Biblioteca do Ensino Médio" : "Banco de Provas")}
             </span>
+            {user?.role === "admin" && (
+              <span className="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30 uppercase tracking-widest ml-2 hidden md:inline-block">Admin</span>
+            )}
           </h2>
           <p className="text-white/70 font-medium mt-3 text-lg">
-            {activeModule === "high_school" 
-              ? "Sebentas, manuais escolares e exercícios das melhores escolas secundárias de Angola."
-              : "Exames oficiais resolvidos passo a passo para garantir a tua aprovação universitária."
-            }
+            {user?.role === "admin" 
+              ? "Supervisione, edite e carregue materiais educativos de forma irrestrita."
+              : (activeModule === "high_school" 
+                ? "Acede a manuais, fichas e resumos para a 10ª, 11ª e 12ª classe."
+                : "Acede aos exames anteriores das melhores universidades e prepara-te com casos reais.")}
           </p>
         </div>
         {isTeacherOrAdmin && (

@@ -115,7 +115,7 @@ export default function SimulationPage() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-xl max-w-2xl w-full z-10 relative overflow-hidden text-left p-5 sm:p-10 rounded-[2rem]"
+          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-xl max-w-2xl w-full z-10 relative overflow-hidden text-left p-4 sm:p-8 rounded-[2rem]"
         >
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
             <Brain className="w-48 h-48 text-white" />
@@ -126,8 +126,8 @@ export default function SimulationPage() {
             <span>Motor Adaptativo APROVEI</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl font-black text-white mb-4 font-title">Simulador IA Dinâmico</h1>
-          <p className="text-white/70 text-sm sm:text-base font-medium mb-10 max-w-lg">
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-3 font-title">Simulador IA Dinâmico</h1>
+          <p className="text-white/70 text-xs sm:text-sm font-medium mb-8 max-w-lg">
             Configura a tua sessão. A IA vai analisar o teu perfil, evitar perguntas repetidas e aumentar a dificuldade gradualmente conforme o teu progresso.
           </p>
 
@@ -186,14 +186,14 @@ export default function SimulationPage() {
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-xl max-w-xl w-full text-center relative z-10 p-6 sm:p-10 rounded-[2rem]"
+          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-xl max-w-xl w-full text-center relative z-10 p-4 sm:p-8 rounded-[2rem]"
         >
-          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-orange to-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange/30">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-orange to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange/30">
             <Award className="w-10 h-10 sm:w-12 sm:h-12 text-lilac-dark" />
           </div>
           
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-2 font-title">Sessão Concluída!</h2>
-          <p className="text-white/60 font-medium mb-8">O motor de IA ajustou o teu nível.</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 font-title">Sessão Concluída!</h2>
+          <p className="text-white/60 font-medium mb-6 text-sm">O motor de IA ajustou o teu nível.</p>
           
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="bg-lilac-dark/40 p-4 sm:p-6 rounded-[2rem] border border-lilac-light/15">
@@ -278,13 +278,13 @@ export default function SimulationPage() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.4 }}
-          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-lg relative p-5 sm:p-8 md:p-12 text-left rounded-[2rem]"
+          className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-lg relative p-4 sm:p-6 md:p-8 text-left rounded-[2rem]"
         >
           <div className="absolute -top-4 sm:-top-5 left-6 sm:left-10 bg-orange text-lilac-dark px-3 sm:px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm shadow-md">
             Questão {currentQuestionIndex + 1} de {questions.length}
           </div>
           
-          <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-6 sm:mb-10 leading-relaxed font-title mt-4">
+          <h2 className="text-base sm:text-xl md:text-2xl font-bold text-white mb-4 sm:mb-8 leading-relaxed font-title mt-2">
             {question.text}
           </h2>
 
@@ -312,9 +312,9 @@ export default function SimulationPage() {
                   key={idx}
                   onClick={() => !isAnswered && setSelectedAnswer(idx)}
                   disabled={isAnswered}
-                  className={`w-full p-3.5 sm:p-5 rounded-2xl text-left font-bold transition-all flex items-center justify-between gap-4 group ${btnClass}`}
+                  className={`w-full p-2.5 sm:p-4 rounded-2xl text-left font-bold transition-all flex items-center justify-between gap-3 group text-xs sm:text-sm ${btnClass}`}
                 >
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                     <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-all shrink-0 ${
                       selectedAnswer === idx || (isAnswered && idx === question.correctIndex) 
                         ? 'bg-orange text-lilac-dark border-orange font-black' 

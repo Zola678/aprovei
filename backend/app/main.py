@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from starlette.requests import Request
 import logging
 import asyncio
@@ -106,7 +107,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     return JSONResponse(
         status_code=422,
-        content={"detail": friendly_detail, "errors": exc.errors()},
+        content={"detail": friendly_detail, "errors": jsonable_encoder(exc.errors())},
     )
 
 @app.get("/health")

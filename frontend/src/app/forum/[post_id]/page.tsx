@@ -326,26 +326,30 @@ export default function PostDetailPage({ params }: { params: { post_id: string }
           {post.comments?.length === 0 ? (
             <p className="text-white/50 italic text-sm text-center py-6">Ainda sem comentários. Começa a conversa!</p>
           ) : (
-            post.comments?.map((comment: any) => (
-              <div key={comment.id} className="bg-lilac-dark/30 border border-lilac-light/10 p-5 md:p-6 rounded-3xl shadow-sm space-y-3 hover:border-lilac-light/20 transition-all duration-300">
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 bg-lilac-dark/50 rounded-full text-orange/80">
-                      <User className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="font-bold text-white/90">
-                      {comment.author?.full_name || 'Membro APROVEI'}
+            post.comments?.map((comment: any) => {
+              const isMyComment = user && comment.author?.id === user.id;
+              return (
+                <div key={comment.id} className={`max-w-[85%] sm:max-w-[75%] p-3 md:p-4 shadow-sm space-y-2 transition-all duration-300 ${
+                  isMyComment 
+                    ? 'ml-auto rounded-2xl rounded-tr-sm bg-green-900/40 border border-green-500/30' 
+                    : 'mr-auto rounded-2xl rounded-tl-sm bg-lilac-dark/50 border border-white/5'
+                }`}>
+                  <div className="flex justify-between items-start gap-4 text-xs">
+                    <span className={`font-bold ${isMyComment ? 'text-green-400' : 'text-orange'}`}>
+                      {isMyComment ? 'Tu' : (comment.author?.full_name || 'Membro APROVEI')}
                     </span>
                   </div>
-                  <span className="text-white/45 font-medium">
-                    {new Date(comment.created_at).toLocaleDateString('pt-AO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  <p className="text-white/90 text-sm md:text-base leading-relaxed pl-0.5">
+                    {comment.content}
+                  </p>
+                  <div className="text-right">
+                    <span className="text-white/40 font-medium text-[10px]">
+                      {new Date(comment.created_at).toLocaleTimeString('pt-AO', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-white/80 text-sm md:text-base leading-relaxed font-medium pl-1">
-                  {comment.content}
-                </p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
