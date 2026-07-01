@@ -47,9 +47,49 @@ class AIChatSessionResponse(BaseModel):
     class Config:
         from_attributes = True
 
-from app.core.lunar import LunarAI
-
-lunar_ai = LunarAI()
+async def talk_ollama_async(contents: list, system_prompt: str):
+    import os
+    import httpx
+    
+    # Mapear histórico do Gemini para o formato do Ollama
+    messages = [{"role": "system", "content": system_prompt}]
+    for item in contents:
+        role = "user" if item.get("role") == "user" else "assistant"
+        text_parts = []
+        for part in item.get("parts", []):
+            if isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+        content_str = " ".join(text_parts).strip()
+        if content_str:
+            messages.append({"role": role, "content": content_str})
+            
+    is_docker = os.path.exists('/.dockerenv')
+    urls = ["http://localhost:11434/api/chat", "http://127.0.0.1:11434/api/chat"]
+    if is_docker:
+        urls.insert(0, "http://host.docker.internal:11434/api/chat")
+        
+    async with httpx.AsyncClient() as client:
+        # Tenta qwen2.5-coder:1.5b primeiro, depois llama3:latest
+        for model in ["qwen2.5-coder:1.5b", "llama3:latest"]:
+            for host_url in urls:
+                payload = {
+                    "model": model,
+                    "messages": messages,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.5,
+                        "num_ctx": 4096
+                    }
+                }
+                try:
+                    response = await client.post(host_url, json=payload, timeout=20.0)
+                    if response.status_code == 200:
+                        res_data = response.json()
+                        return res_data.get("message", {}).get("content", "")
+                except Exception as exc:
+                    print(f"[OLLAMA FALLBACK] Failed model {model} on {host_url}: {exc}")
+                    continue
+    return None
 
 async def generate_ai_response(
     user_input: str,
@@ -198,29 +238,61 @@ async def generate_ai_response(
                     "parts": user_parts
                 })
             
-            # 3. Fazer a chamada HTTP assíncrona
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-            payload = {
-                "contents": contents,
-                "systemInstruction": {
-                    "parts": [{"text": system_prompt}]
-                }
-            }
+            # 3. Fazer a chamada HTTP assíncrona com fallback de modelo (evita 429)
+            models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
+            response = None
             
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, json=payload, timeout=30.0)
-                
-            if response.status_code == 200:
+                for model_name in models_to_try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                    payload = {
+                        "contents": contents,
+                        "systemInstruction": {
+                            "parts": [{"text": system_prompt}]
+                        }
+                    }
+                    try:
+                        response = await client.post(url, json=payload, timeout=30.0)
+                        if response.status_code == 200:
+                            print(f"[AI MODEL SUCCESS] Response generated successfully using: {model_name}")
+                            break
+                        elif response.status_code == 429:
+                            print(f"[AI MODEL LIMIT] {model_name} returned 429 (Rate Limit). Trying next model in fallback chain...")
+                            continue
+                        else:
+                            print(f"[AI MODEL ERROR] {model_name} returned {response.status_code}: {response.text}")
+                    except Exception as exc:
+                        print(f"[AI MODEL EXCEPTION] Exception calling model {model_name}: {exc}")
+                        
+            if response and response.status_code == 200:
                 data = response.json()
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
                 return text
             else:
-                error_msg = f"Erro na API do Gemini: {response.status_code} - {response.text}"
+                status_code = response.status_code if response else "NO_RESPONSE"
+                response_text = response.text if response else ""
+                error_msg = f"Erro na API do Gemini: {status_code} - {response_text}"
                 print(error_msg)
-                return f"Lamento, mas encontrei um erro ao conectar ao servidor da IA na nuvem. Detalhe técnico: {response.status_code}. Se estiver no Railway, verifique se a GEMINI_API_KEY está correta e se a região do servidor tem suporte para a API da Google."
+                
+                # Fallback para Ollama se Gemini estiver bloqueado/esgotado
+                print("[AI FALLBACK] Gemini limits reached or error. Querying local Ollama...")
+                ollama_resp = await talk_ollama_async(contents, system_prompt)
+                if ollama_resp:
+                    print("[AI FALLBACK SUCCESS] Successfully answered via local Ollama fallback!")
+                    return ollama_resp
+                    
+                return f"Lamento, mas a IA está temporariamente sob limite de tráfego (Erro {status_code}). Por favor, aguarde uns momentos ou tente novamente."
         except Exception as e:
             error_msg = f"Exceção ao ligar à API do Gemini: {str(e)}"
             print(error_msg)
+            
+            # Fallback para Ollama
+            print("[AI FALLBACK] Exception occurred. Querying local Ollama...")
+            ollama_resp = await talk_ollama_async(contents, system_prompt)
+            if ollama_resp:
+                print("[AI FALLBACK SUCCESS] Successfully answered via local Ollama fallback after exception!")
+                return ollama_resp
+                
             return "Desculpe, ocorreu uma falha de conexão interna ao tentar contactar o motor de inteligência artificial. Por favor, tente novamente em instantes."
             
     else:

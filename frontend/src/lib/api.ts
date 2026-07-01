@@ -14,11 +14,16 @@ export const getStorageUrl = (path: string | null | undefined): string => {
   
   let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
   
-  // Se estivermos no navegador, substitui localhost pelo hostname real para funcionar no mobile/rede local
+  // Se estivermos no navegador, garante que o hostname da API é o mesmo da página (para funcionar no mobile/rede local)
   if (typeof window !== 'undefined') {
-    const currentHostname = window.location.hostname;
-    if (currentHostname && currentHostname !== 'localhost' && apiUrl.includes('localhost')) {
-      apiUrl = apiUrl.replace('localhost', currentHostname);
+    try {
+      const urlObj = new URL(apiUrl);
+      if (window.location.hostname) {
+        urlObj.hostname = window.location.hostname;
+        apiUrl = urlObj.toString();
+      }
+    } catch (e) {
+      console.error("Erro ao converter URL da API:", e);
     }
   }
   
