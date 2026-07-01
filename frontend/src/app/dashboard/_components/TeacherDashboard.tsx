@@ -72,7 +72,7 @@ export default function TeacherDashboard({ user }: { user: any }) {
       </div>
 
       {/* Grid de Metricas */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-4">
         <div className="bg-white/5 p-4 sm:p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Minhas Turmas</h4>
           <p className="text-xl sm:text-3xl font-black text-white mt-2">{classrooms.length} Ativas</p>
@@ -107,12 +107,12 @@ export default function TeacherDashboard({ user }: { user: any }) {
             ) : (
               <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                 {pendingEnrollments.map((enr) => (
-                  <div key={enr.id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex justify-between items-center text-sm">
-                    <div>
-                      <p className="font-bold text-white">{enr.student?.full_name}</p>
-                      <p className="text-xs text-white/50">Turma: {enr.classroom?.name}</p>
+                  <div key={enr.id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex gap-3 justify-between items-center text-sm min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-white truncate">{enr.student?.full_name}</p>
+                      <p className="text-xs text-white/50 truncate">Turma: {enr.classroom?.name}</p>
                     </div>
-                    <span className="text-xs bg-orange/15 text-orange px-2.5 py-1 rounded font-bold uppercase tracking-wider">Aguardando</span>
+                    <span className="text-[10px] sm:text-xs bg-orange/15 text-orange px-2 py-1 rounded font-bold uppercase tracking-wider shrink-0">Aguardando</span>
                   </div>
                 ))}
               </div>
@@ -136,12 +136,12 @@ export default function TeacherDashboard({ user }: { user: any }) {
             ) : (
               <div className="space-y-3">
                 {classrooms.map((c) => (
-                  <div key={c.id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex justify-between items-center text-sm">
-                    <div>
-                      <p className="font-bold text-white">{c.name}</p>
-                      <p className="text-xs text-white/50">Matéria: {c.subject}</p>
+                  <div key={c.id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex gap-3 justify-between items-center text-sm min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-white truncate">{c.name}</p>
+                      <p className="text-xs text-white/50 truncate">Matéria: {c.subject}</p>
                     </div>
-                    <span className="text-xs bg-green-500/10 text-green-400 px-2.5 py-1 rounded font-bold border border-green-500/25">Ativa</span>
+                    <span className="text-[10px] sm:text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded font-bold border border-green-500/25 shrink-0">Ativa</span>
                   </div>
                 ))}
               </div>

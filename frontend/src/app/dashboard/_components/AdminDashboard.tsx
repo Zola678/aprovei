@@ -173,7 +173,7 @@ export default function AdminDashboard({ user }: { user: any }) {
       </div>
 
       {/* Grid de Estatísticas */}
-      <div className="grid gap-6 grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Estudantes</h4>
           <p className="text-3xl font-black text-white mt-2">{stats?.total_students || 0}</p>
@@ -197,7 +197,7 @@ export default function AdminDashboard({ user }: { user: any }) {
       </div>
 
       {/* Navegação por Tabs */}
-      <div className="flex border-b border-white/10 gap-6">
+      <div className="flex overflow-x-auto custom-scrollbar pb-2 sm:pb-0 border-b border-white/10 gap-4 sm:gap-6 whitespace-nowrap">
         <button
           onClick={() => setActiveTab('pending')}
           className={`pb-4 text-base md:text-lg font-bold border-b-2 transition-all ${
@@ -246,7 +246,7 @@ export default function AdminDashboard({ user }: { user: any }) {
               <div className="space-y-6">
                 {pending.map((candidate) => (
                   <div key={candidate.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 justify-between items-start">
-                    <div className="flex gap-4 items-start flex-1">
+                    <div className="flex gap-3 sm:gap-4 items-start flex-1 min-w-0 w-full">
                       {candidate.photo_url ? (
                         <img 
                           src={getStorageUrl(candidate.photo_url)} 
@@ -304,11 +304,11 @@ export default function AdminDashboard({ user }: { user: any }) {
                       </div>
                     </div>
 
-                    <div className="flex xl:flex-col gap-3 shrink-0 w-full xl:w-auto">
+                    <div className="flex flex-col sm:flex-row xl:flex-col gap-3 shrink-0 w-full xl:w-auto">
                       <button
                         disabled={actionLoading !== null || candidate.status === 'pending_interview'}
                         onClick={() => handleApprove(candidate.id)}
-                        className={`flex-1 xl:flex-none px-6 py-3 font-bold rounded-xl text-sm transition-all ${
+                        className={`flex-1 xl:flex-none px-4 sm:px-6 py-2.5 sm:py-3 font-bold rounded-xl text-sm transition-all ${
                           candidate.status === 'pending_interview'
                             ? 'bg-orange/20 text-orange/40 cursor-not-allowed border border-orange/10'
                             : 'btn-orange'
@@ -324,7 +324,7 @@ export default function AdminDashboard({ user }: { user: any }) {
                       <button
                         disabled={actionLoading !== null}
                         onClick={() => handleConfirmReject(candidate.id, candidate.full_name)}
-                        className="flex-1 xl:flex-none bg-rose-950/60 border border-rose-800/40 text-rose-300 hover:bg-rose-900 px-6 py-3 font-bold rounded-xl text-sm transition-all"
+                        className="flex-1 xl:flex-none bg-rose-950/60 border border-rose-800/40 text-rose-300 hover:bg-rose-900 px-4 sm:px-6 py-2.5 sm:py-3 font-bold rounded-xl text-sm transition-all"
                       >
                         Rejeitar & Excluir
                       </button>
@@ -345,7 +345,7 @@ export default function AdminDashboard({ user }: { user: any }) {
               </p>
             ) : (
               <div className="overflow-x-auto rounded-2xl border border-white/10">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
                     <tr className="bg-white/5 text-white/50 text-xs font-bold uppercase tracking-wider">
                       <th className="p-4 border-b border-white/10">Nome Completo</th>
@@ -388,7 +388,7 @@ export default function AdminDashboard({ user }: { user: any }) {
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
                 {activeTeachers.map((teacher) => (
-                  <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex gap-4 items-start">
+                  <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex gap-3 sm:gap-4 items-start min-w-0">
                     {teacher.photo_url ? (
                       <img 
                         src={getStorageUrl(teacher.photo_url)} 
