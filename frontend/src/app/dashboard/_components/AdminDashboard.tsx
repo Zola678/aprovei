@@ -173,24 +173,24 @@ export default function AdminDashboard({ user }: { user: any }) {
       </div>
 
       {/* Grid de Estatísticas */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        <div className="bg-white/5 p-5 sm:p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Estudantes</h4>
           <p className="text-3xl font-black text-white mt-2">{stats?.total_students || 0}</p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+        <div className="bg-white/5 p-5 sm:p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Explicadores Ativos</h4>
           <p className="text-3xl font-black text-orange mt-2">{stats?.total_teachers_active || 0}</p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+        <div className="bg-white/5 p-5 sm:p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Candidaturas Pendentes</h4>
           <p className="text-3xl font-black text-amber-400 mt-2">{stats?.total_teachers_pending || 0}</p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+        <div className="bg-white/5 p-5 sm:p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Provas no Sistema</h4>
           <p className="text-3xl font-black text-white mt-2">{stats?.total_exams || 0}</p>
         </div>
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+        <div className="bg-white/5 p-5 sm:p-6 rounded-2xl border border-white/10">
           <h4 className="text-white/50 text-xs font-bold uppercase tracking-wider">Atividade no Fórum</h4>
           <p className="text-3xl font-black text-white mt-2">{stats?.total_posts || 0} posts</p>
         </div>
@@ -246,15 +246,15 @@ export default function AdminDashboard({ user }: { user: any }) {
               <div className="space-y-6">
                 {pending.map((candidate) => (
                   <div key={candidate.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 justify-between items-start">
-                    <div className="flex gap-3 sm:gap-4 items-start flex-1 min-w-0 w-full">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start flex-1 min-w-0 w-full text-center sm:text-left">
                       {candidate.photo_url && candidate.photo_url !== "null" && candidate.photo_url !== "undefined" ? (
                         <img 
                           src={getStorageUrl(candidate.photo_url)} 
                           alt={candidate.full_name} 
-                          className="w-20 h-20 rounded-2xl object-cover border-2 border-orange/40 shadow-lg shrink-0"
+                          className="w-24 h-24 sm:w-20 sm:h-20 rounded-full sm:rounded-2xl object-cover border-2 border-orange/40 shadow-lg shrink-0"
                         />
                       ) : (
-                        <div className="w-20 h-20 bg-orange/10 border-2 border-orange/20 rounded-2xl shrink-0 flex items-center justify-center text-orange font-bold">
+                        <div className="w-24 h-24 sm:w-20 sm:h-20 bg-orange/10 border-2 border-orange/20 rounded-full sm:rounded-2xl shrink-0 flex items-center justify-center text-orange font-bold">
                           Sem Foto
                         </div>
                       )}
@@ -388,15 +388,15 @@ export default function AdminDashboard({ user }: { user: any }) {
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
                 {activeTeachers.map((teacher) => (
-                  <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex gap-3 sm:gap-4 items-start min-w-0">
+                  <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row gap-4 items-center sm:items-start min-w-0 text-center sm:text-left">
                     {teacher.photo_url && teacher.photo_url !== "null" && teacher.photo_url !== "undefined" ? (
                         <img 
                         src={getStorageUrl(teacher.photo_url)} 
                         alt={teacher.full_name} 
-                        className="w-16 h-16 rounded-xl object-cover border border-orange/30 shadow-md shrink-0"
+                        className="w-20 h-20 sm:w-16 sm:h-16 rounded-full sm:rounded-xl object-cover border border-orange/30 shadow-md shrink-0"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-orange/10 border-orange/20 rounded-xl shrink-0 flex items-center justify-center text-orange font-bold font-title">
+                      <div className="w-20 h-20 sm:w-16 sm:h-16 bg-orange/10 border-orange/20 rounded-full sm:rounded-xl shrink-0 flex items-center justify-center text-orange font-bold font-title text-xl sm:text-base">
                         {teacher.full_name ? teacher.full_name.substring(0, 2).toUpperCase() : 'EX'}
                       </div>
                     )}

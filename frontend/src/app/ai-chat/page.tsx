@@ -300,7 +300,7 @@ export default function AIChatPage() {
   return (
     <div className={
       isAuthenticated 
-        ? "w-full flex-grow flex flex-col max-w-[1600px] mx-auto font-sans relative overflow-hidden"
+        ? "w-full h-[calc(100vh-5rem)] flex flex-col max-w-[1600px] mx-auto font-sans relative overflow-hidden"
         : "min-h-screen bg-background pt-24 pb-12 flex flex-col px-6 md:px-12 lg:px-20 xl:px-32 max-w-[1600px] mx-auto font-sans relative overflow-hidden"
     }>
       
