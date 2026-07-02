@@ -4,6 +4,7 @@ import socket
 import httpx
 import re
 from app.core.config import settings
+from app.core.key_rotator import get_next_available_key, mark_key_cooldown, GEMINI_KEYS_POOL
 
 class LunarAI:
     def __init__(self):
@@ -94,13 +95,9 @@ class LunarAI:
         )
 
     def talk_gemini(self, prompt):
-        api_key = self.config.get('gemini_api_key') or settings.GEMINI_API_KEY
-        if not api_key:
+        if not GEMINI_KEYS_POOL:
             return None
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.config['model_online']}:generateContent?key={api_key}"
-        headers = {'Content-Type': 'application/json'}
-        
         contents = []
         for entry in self.history[-15:]:
             if entry.get('prompt') and entry.get('response'):
@@ -109,28 +106,40 @@ class LunarAI:
         
         contents.append({"role": "user", "parts": [{"text": prompt}]})
 
-        payload = {
-            "contents": contents,
-            "systemInstruction": {
-                "parts": [{"text": self.format_system_msg()}]
-            },
-            "generationConfig": {
-                "temperature": 0.3,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 4096,
-            }
-        }
+        max_attempts = len(GEMINI_KEYS_POOL)
+        headers = {'Content-Type': 'application/json'}
         
-        try:
-            response = httpx.post(url, headers=headers, json=payload, timeout=20.0)
-            if response.status_code == 200:
-                res_json = response.json()
-                if 'candidates' in res_json and res_json['candidates']:
-                    return res_json['candidates'][0]['content']['parts'][0]['text']
-            return None
-        except Exception:
-            return None
+        for attempt in range(max_attempts):
+            api_key = get_next_available_key()
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.config['model_online']}:generateContent?key={api_key}"
+            payload = {
+                "contents": contents,
+                "systemInstruction": {
+                    "parts": [{"text": self.format_system_msg()}]
+                },
+                "generationConfig": {
+                    "temperature": 0.3,
+                    "topK": 40,
+                    "topP": 0.95,
+                    "maxOutputTokens": 4096,
+                }
+            }
+            try:
+                response = httpx.post(url, headers=headers, json=payload, timeout=20.0)
+                if response.status_code == 200:
+                    res_json = response.json()
+                    if 'candidates' in res_json and res_json['candidates']:
+                        return res_json['candidates'][0]['content']['parts'][0]['text']
+                elif response.status_code == 429:
+                    print(f"[LUNAR ROTATOR] Key {api_key[:10]}... returned 429. Rotating...")
+                    mark_key_cooldown(api_key, duration=65.0)
+                elif response.status_code in [401, 403, 400]:
+                    print(f"[LUNAR ROTATOR] Key {api_key[:10]}... failed with {response.status_code}. Cooldown for 5m.")
+                    mark_key_cooldown(api_key, duration=300.0)
+            except Exception as e:
+                print(f"[LUNAR ROTATOR] Exception calling {self.config['model_online']} with key {api_key[:10]}: {e}")
+                
+        return None
 
     def talk_ollama(self, prompt):
         is_docker = os.path.exists('/.dockerenv')

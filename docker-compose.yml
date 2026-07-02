@@ -32,6 +32,7 @@ services:
     volumes:
       - ./backend:/app
       - backend_storage:/app/storage
+      - /home/genial/Lunar:/app/lunar_local:ro
 
   frontend:
     build:
