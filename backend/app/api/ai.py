@@ -7,7 +7,11 @@ from app.core.database import get_db
 from app.models.models import User, AIChatSession, AIChatMessage, Exam as ExamModel
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.key_rotator import get_next_available_key, mark_key_cooldown, GEMINI_KEYS_POOL
 from app.core.limiter import limiter
+from app.core.lunar import LunarAI
+
+lunar_ai = LunarAI()
 import asyncio
 import random
 import httpx
@@ -115,9 +119,7 @@ async def generate_ai_response(
     except Exception as e:
         print(f"Exceção ao chamar a Lunar AI de forma nativa: {e}")
 
-    api_key = settings.GEMINI_API_KEY
-    
-    if api_key:
+    if GEMINI_KEYS_POOL:
         try:
             # 1. Definir a instrução de sistema com base no nível educacional ou modo desafio
             if is_challenge:
@@ -238,31 +240,49 @@ async def generate_ai_response(
                     "parts": user_parts
                 })
             
-            # 3. Fazer a chamada HTTP assíncrona com fallback de modelo (evita 429)
+            # 3. Fazer a chamada HTTP assíncrona com rotação de chaves e fallback de modelo (evita 429)
             models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
             response = None
+            success = False
+            
+            # Tentar até esgotar todas as chaves do pool
+            max_key_attempts = len(GEMINI_KEYS_POOL)
             
             async with httpx.AsyncClient() as client:
-                for model_name in models_to_try:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-                    payload = {
-                        "contents": contents,
-                        "systemInstruction": {
-                            "parts": [{"text": system_prompt}]
+                for attempt in range(max_key_attempts):
+                    current_key = get_next_available_key()
+                    print(f"[AI ROTATOR] Tentando chamada com a chave: {current_key[:10]}... (Tentativa {attempt+1}/{max_key_attempts})")
+                    
+                    for model_name in models_to_try:
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={current_key}"
+                        payload = {
+                            "contents": contents,
+                            "systemInstruction": {
+                                "parts": [{"text": system_prompt}]
+                            }
                         }
-                    }
-                    try:
-                        response = await client.post(url, json=payload, timeout=30.0)
-                        if response.status_code == 200:
-                            print(f"[AI MODEL SUCCESS] Response generated successfully using: {model_name}")
-                            break
-                        elif response.status_code == 429:
-                            print(f"[AI MODEL LIMIT] {model_name} returned 429 (Rate Limit). Trying next model in fallback chain...")
-                            continue
-                        else:
-                            print(f"[AI MODEL ERROR] {model_name} returned {response.status_code}: {response.text}")
-                    except Exception as exc:
-                        print(f"[AI MODEL EXCEPTION] Exception calling model {model_name}: {exc}")
+                        try:
+                            response = await client.post(url, json=payload, timeout=30.0)
+                            if response.status_code == 200:
+                                print(f"[AI MODEL SUCCESS] Response generated using: {model_name} with key: {current_key[:10]}...")
+                                success = True
+                                break
+                            elif response.status_code == 429:
+                                print(f"[AI MODEL LIMIT] Model {model_name} with key {current_key[:10]}... returned 429 (Rate Limit).")
+                                # Coloca a chave em cooldown
+                                mark_key_cooldown(current_key, duration=65.0)
+                                break # Quebra o loop do modelo para tentar a próxima chave do rotator
+                            elif response.status_code in [401, 403, 400]:
+                                print(f"[AI KEY ERROR] Key {current_key[:10]}... returned {response.status_code} (Invalid/Blocked). Cooldown for 5 minutes.")
+                                mark_key_cooldown(current_key, duration=300.0)
+                                break # Tentar a próxima chave
+                            else:
+                                print(f"[AI MODEL ERROR] Model {model_name} with key {current_key[:10]}... returned {response.status_code}: {response.text}")
+                        except Exception as exc:
+                            print(f"[AI MODEL EXCEPTION] Exception calling model {model_name} with key {current_key[:10]}...: {exc}")
+                            
+                    if success:
+                        break
                         
             if response and response.status_code == 200:
                 data = response.json()
@@ -274,7 +294,7 @@ async def generate_ai_response(
                 error_msg = f"Erro na API do Gemini: {status_code} - {response_text}"
                 print(error_msg)
                 
-                # Fallback para Ollama se Gemini estiver bloqueado/esgotado
+                # Fallback para Ollama se todas as chaves do Gemini estiverem bloqueadas/esgotadas
                 print("[AI FALLBACK] Gemini limits reached or error. Querying local Ollama...")
                 ollama_resp = await talk_ollama_async(contents, system_prompt)
                 if ollama_resp:
@@ -698,3 +718,49 @@ async def create_exam_challenge_session(
     await db.commit()
     
     return new_session
+
+@router.get("/tts")
+async def text_to_speech(text: str):
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="Texto não pode ser vazio.")
+        
+    piper_bin = "storage/voice/piper/piper"
+    model_path = "storage/voice/pt_PT-tugão-medium.onnx"
+    espeak_data = "storage/voice/piper/espeak-ng-data"
+    
+    if not os.path.exists(piper_bin) or not os.path.exists(model_path):
+        print(f"[TTS CONFIG ERROR] piper_bin={os.path.exists(piper_bin)}, model_path={os.path.exists(model_path)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="O motor de voz (Piper TTS ou modelo ONNX) não está disponível no servidor."
+        )
+        
+    cmd = [
+        piper_bin,
+        "--model", model_path,
+        "--output_file", "-",
+        "--espeak_data", espeak_data
+    ]
+    
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        # Enviar o texto pela stdin do processo
+        stdout, stderr = await process.communicate(input=text.encode("utf-8"))
+        
+        if process.returncode == 0 and stdout:
+            from fastapi import Response
+            return Response(content=stdout, media_type="audio/wav")
+        else:
+            err_log = stderr.decode("utf-8") if stderr else "Sem log de erro"
+            print(f"Erro na execução do Piper: {err_log}")
+            raise HTTPException(status_code=500, detail=f"Erro ao sintetizar áudio: {err_log}")
+            
+    except Exception as e:
+        print(f"Exceção no TTS: {e}")
+        raise HTTPException(status_code=500, detail=f"Falha interna no motor de voz: {str(e)}")

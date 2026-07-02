@@ -28,63 +28,82 @@ export default function AIChatPage() {
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string } | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      synthRef.current = window.speechSynthesis;
-    }
     return () => {
-      if (synthRef.current) {
-        synthRef.current.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
       }
     };
   }, []);
 
-  const handleSpeak = (msgId: number, text: string) => {
-    if (!synthRef.current) return;
+  const getTtsUrl = (text: string) => {
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    if (typeof window !== 'undefined') {
+      try {
+        const urlObj = new URL(apiUrl);
+        if (window.location.hostname) {
+          urlObj.hostname = window.location.hostname;
+          apiUrl = urlObj.toString();
+        }
+      } catch (e) {}
+    }
+    const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    return `${cleanApiUrl}/ai/tts?text=${encodeURIComponent(text)}`;
+  };
 
+  const handleSpeak = (msgId: number, text: string) => {
     if (playingMessageId === msgId) {
-      synthRef.current.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       setPlayingMessageId(null);
       return;
     }
 
-    synthRef.current.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     
     // Clean markdown content for smooth text reading
     const cleanText = text
       .replace(/\[FILE:[^\]]+\]/g, "") // remove file references
       .replace(/\*\*/g, "")
       .replace(/-\s/g, "")
-      .replace(/#+/g, "");
+      .replace(/#+/g, "")
+      .trim();
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    
-    // Obter vozes do navegador dinamicamente
-    const voices = synthRef.current ? synthRef.current.getVoices() : [];
-    const ptVoices = voices.filter(v => v.lang.toLowerCase().startsWith("pt"));
-    // Procura prioritária por vozes premium/fluidas (Google ou Natural)
-    const fluidVoice = ptVoices.find(v => v.name.toLowerCase().includes("google") || v.name.toLowerCase().includes("natural")) || ptVoices[0];
-    
-    if (fluidVoice) {
-      utterance.voice = fluidVoice;
-      utterance.lang = fluidVoice.lang;
-    } else {
-      utterance.lang = "pt-PT";
+    if (!cleanText) return;
+
+    try {
+      const ttsUrl = getTtsUrl(cleanText);
+      const audio = new Audio(ttsUrl);
+      
+      audio.onended = () => {
+        setPlayingMessageId(null);
+        audioRef.current = null;
+      };
+      
+      audio.onerror = () => {
+        setPlayingMessageId(null);
+        audioRef.current = null;
+        console.error("Erro na reprodução do TTS do Piper.");
+      };
+
+      audioRef.current = audio;
+      setPlayingMessageId(msgId);
+      audio.play().catch((err) => {
+        console.error("Erro ao reproduzir voz:", err);
+        setPlayingMessageId(null);
+      });
+    } catch (err) {
+      console.error("Falha ao inicializar o áudio:", err);
+      setPlayingMessageId(null);
     }
-    
-    utterance.onend = () => {
-      setPlayingMessageId(null);
-    };
-    utterance.onerror = () => {
-      setPlayingMessageId(null);
-    };
-
-    utteranceRef.current = utterance;
-    setPlayingMessageId(msgId);
-    synthRef.current.speak(utterance);
   };
 
   const uploadFileDirectly = async (file: File) => {
