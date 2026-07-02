@@ -11,7 +11,7 @@ from sqlalchemy.future import select
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.models import User as UserModel
-from app.schemas.user import UserCreate, User
+from app.schemas.user import UserCreate, User, UserUpdate
 from app.core.limiter import limiter
 from pydantic import BaseModel, EmailStr, Field
 
@@ -250,6 +250,78 @@ from app.api.deps import get_current_user
 
 @router.get("/me", response_model=User)
 async def get_me(current_user: UserModel = Depends(get_current_user)):
+    return current_user
+
+@router.put("/me", response_model=User)
+async def update_me(
+    user_update: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    """Atualiza o perfil do utilizador autenticado e configurações"""
+    if user_update.full_name is not None:
+        current_user.full_name = user_update.full_name
+    if user_update.phone is not None:
+        current_user.phone = user_update.phone
+    if user_update.educational_level is not None:
+        current_user.educational_level = user_update.educational_level
+    if user_update.experience is not None:
+        current_user.experience = user_update.experience
+    if user_update.years_of_experience is not None:
+        current_user.years_of_experience = user_update.years_of_experience
+    if user_update.what_intends is not None:
+        current_user.what_intends = user_update.what_intends
+
+    if user_update.password is not None and user_update.password.strip():
+        current_user.password_hash = get_password_hash(user_update.password)
+
+    if current_user.role == "teacher":
+        from app.models.models import TeacherProfile as TeacherModel
+        stmt = select(TeacherModel).where(TeacherModel.user_id == current_user.id)
+        res_profile = await db.execute(stmt)
+        profile = res_profile.scalars().first()
+        
+        has_profile_updates = any(
+            x is not None for x in [
+                user_update.specialty,
+                user_update.bio,
+                user_update.price_per_hour,
+                user_update.whatsapp,
+                user_update.location,
+                user_update.subject_tags
+            ]
+        )
+        
+        if has_profile_updates:
+            if not profile:
+                profile = TeacherModel(
+                    user_id=current_user.id,
+                    specialty=user_update.specialty or "Geral",
+                    bio=user_update.bio or "",
+                    price_per_hour=user_update.price_per_hour or 0,
+                    whatsapp=user_update.whatsapp or "",
+                    location=user_update.location or "",
+                    subject_tags=user_update.subject_tags or ""
+                )
+                db.add(profile)
+            else:
+                if user_update.specialty is not None:
+                    profile.specialty = user_update.specialty
+                if user_update.bio is not None:
+                    profile.bio = user_update.bio
+                if user_update.price_per_hour is not None:
+                    profile.price_per_hour = user_update.price_per_hour
+                if user_update.whatsapp is not None:
+                    profile.whatsapp = user_update.whatsapp
+                if user_update.location is not None:
+                    profile.location = user_update.location
+                if user_update.subject_tags is not None:
+                    profile.subject_tags = user_update.subject_tags
+                db.add(profile)
+
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
     return current_user
 
 from sqlalchemy import func

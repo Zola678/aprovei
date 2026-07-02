@@ -199,7 +199,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
 
       <div className="p-6 border-t border-white/5 relative z-10">
         <nav className="space-y-1.5">
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-white/60 hover:bg-white/5 hover:text-orange transition-all duration-300 group border border-transparent">
+          <a href="/dashboard/settings" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-white/60 hover:bg-white/5 hover:text-orange transition-all duration-300 group border border-transparent">
             <Settings className="w-5 h-5 text-white/40 group-hover:text-orange transition-transform group-hover:rotate-90 duration-500" />
             <span className="text-left">Configurações</span>
           </a>
@@ -286,11 +286,9 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                  className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent p-0.5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
                >
-                 <img 
-                   src={user && user.photo_url ? getStorageUrl(user.photo_url) : "https://i.pravatar.cc/150?img=33"} 
-                   alt="Profile" 
-                   className="w-full h-full rounded-full border-2 border-white object-cover" 
-                 />
+                 <div className="w-full h-full rounded-full border-2 border-white flex items-center justify-center bg-orange text-white font-bold text-sm">
+                   {(user?.name || user?.full_name || 'US').substring(0, 2).toUpperCase()}
+                 </div>
                </div>
                
                {isProfileMenuOpen && (
@@ -307,7 +305,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
                        <User className="w-4 h-4 text-white/50" />
                        O meu Perfil
                      </button>
-                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+                     <button onClick={() => { setIsProfileMenuOpen(false); router.push('/dashboard/settings'); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors">
                        <Settings className="w-4 h-4 text-white/50" />
                        Configurações
                      </button>

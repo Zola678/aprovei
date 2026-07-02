@@ -21,7 +21,6 @@ export default function RegisterPage() {
     phone: '',
     educational_level: 'university_access'
   });
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -50,26 +49,7 @@ export default function RegisterPage() {
     }
     
     try {
-      if (formData.role === 'teacher') {
-        if (!photoFile) {
-          setError('A foto de perfil é obrigatória para professores.');
-          setLoading(false);
-          return;
-        }
-        const data = new FormData();
-        data.append('email', formData.email);
-        data.append('password', formData.password);
-        data.append('full_name', formData.full_name);
-        data.append('phone', formData.phone);
-        data.append('educational_level', formData.educational_level);
-        data.append('photo', photoFile);
-
-        await api.post('/auth/register-teacher', data, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      } else {
-        await api.post('/auth/register', formData);
-      }
+      await api.post('/auth/register', formData);
       setSuccess(true);
       setTimeout(() => {
         router.push('/auth/login');
@@ -195,22 +175,6 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {formData.role === 'teacher' && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Foto de Perfil (Obrigatória)</label>
-                    <input
-                      type="file"
-                      required
-                      accept="image/*"
-                      className="w-full px-4 py-3 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl outline-none text-white text-sm focus:border-orange/50 transition-all font-semibold"
-                      onChange={e => {
-                        if (e.target.files && e.target.files[0]) {
-                          setPhotoFile(e.target.files[0]);
-                        }
-                      }}
-                    />
-                  </div>
-                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Nível de Ensino</label>

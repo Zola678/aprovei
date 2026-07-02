@@ -24,3 +24,18 @@ class User(UserBase):
     
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    full_name: str | None = None
+    phone: str | None = None
+    educational_level: str | None = None
+    password: str | None = None
+    experience: str | None = None
+    years_of_experience: int | None = None
+    what_intends: str | None = None
+    specialty: str | None = None
+    bio: str | None = None
+    price_per_hour: int | None = None
+    whatsapp: str | None = None
+    location: str | None = None
+    subject_tags: str | None = None

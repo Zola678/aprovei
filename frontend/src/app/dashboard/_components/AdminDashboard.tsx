@@ -247,17 +247,9 @@ export default function AdminDashboard({ user }: { user: any }) {
                 {pending.map((candidate) => (
                   <div key={candidate.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 justify-between items-start">
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start flex-1 min-w-0 w-full text-center sm:text-left">
-                      {candidate.photo_url && candidate.photo_url !== "null" && candidate.photo_url !== "undefined" ? (
-                        <img 
-                          src={getStorageUrl(candidate.photo_url)} 
-                          alt={candidate.full_name} 
-                          className="w-24 h-24 sm:w-20 sm:h-20 rounded-full sm:rounded-2xl object-cover border-2 border-orange/40 shadow-lg shrink-0"
-                        />
-                      ) : (
-                        <div className="w-24 h-24 sm:w-20 sm:h-20 bg-orange/10 border-2 border-orange/20 rounded-full sm:rounded-2xl shrink-0 flex items-center justify-center text-orange font-bold">
-                          Sem Foto
-                        </div>
-                      )}
+                      <div className="w-24 h-24 sm:w-20 sm:h-20 bg-orange/10 border-2 border-orange/20 rounded-full sm:rounded-2xl shrink-0 flex items-center justify-center text-orange font-bold font-title text-xl sm:text-2xl">
+                        {candidate.full_name ? candidate.full_name.substring(0, 2).toUpperCase() : 'EX'}
+                      </div>
                       
                       <div className="space-y-2 flex-grow">
                         <div className="flex flex-wrap items-center gap-2">
@@ -416,17 +408,9 @@ export default function AdminDashboard({ user }: { user: any }) {
               <div className="grid gap-6 md:grid-cols-2">
                 {activeTeachers.map((teacher) => (
                   <div key={teacher.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row gap-4 items-center sm:items-start min-w-0 text-center sm:text-left">
-                    {teacher.photo_url && teacher.photo_url !== "null" && teacher.photo_url !== "undefined" ? (
-                        <img 
-                        src={getStorageUrl(teacher.photo_url)} 
-                        alt={teacher.full_name} 
-                        className="w-20 h-20 sm:w-16 sm:h-16 rounded-full sm:rounded-xl object-cover border border-orange/30 shadow-md shrink-0"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 sm:w-16 sm:h-16 bg-orange/10 border-orange/20 rounded-full sm:rounded-xl shrink-0 flex items-center justify-center text-orange font-bold font-title text-xl sm:text-base">
-                        {teacher.full_name ? teacher.full_name.substring(0, 2).toUpperCase() : 'EX'}
-                      </div>
-                    )}
+                    <div className="w-20 h-20 sm:w-16 sm:h-16 bg-orange/10 border-orange/20 rounded-full sm:rounded-xl shrink-0 flex items-center justify-center text-orange font-bold font-title text-xl sm:text-base">
+                      {teacher.full_name ? teacher.full_name.substring(0, 2).toUpperCase() : 'EX'}
+                    </div>
                     <div className="space-y-1">
                       <h4 className="text-lg font-bold text-white leading-tight">{teacher.full_name}</h4>
                       <p className="text-xs text-white/40">{teacher.email} | {teacher.phone}</p>
