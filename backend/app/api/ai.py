@@ -109,15 +109,16 @@ async def generate_ai_response(
     """
     is_challenge = session_title.startswith("Desafio:")
     
-    # 1. Tentar contactar a IA LUNAR nativa
-    try:
-        prompt_with_context = f"[Contexto de Estudos Aprovei: {educational_level}] [Desafio: {session_title if is_challenge else 'Nenhum'}] [Gabarito: {answer_key or 'Nenhum'}] {user_input}"
-        lunar_resp = await asyncio.to_thread(lunar_ai.run, prompt_with_context)
-        # Se for executada com sucesso e não for o aviso offline estático, devolve a resposta
-        if lunar_resp and not lunar_resp.startswith("LUNAR CORE EXCEPTION") and not lunar_resp.startswith("À sua disposição, Senhor. Contudo"):
-            return lunar_resp
-    except Exception as e:
-        print(f"Exceção ao chamar a Lunar AI de forma nativa: {e}")
+    # 1. Tentar contactar a IA LUNAR nativa (apenas se não houver anexo, já que o Lunar AI não processa ficheiros)
+    if not file_url:
+        try:
+            prompt_with_context = f"[Contexto de Estudos Aprovei: {educational_level}] [Desafio: {session_title if is_challenge else 'Nenhum'}] [Gabarito: {answer_key or 'Nenhum'}] {user_input}"
+            lunar_resp = await asyncio.to_thread(lunar_ai.run, prompt_with_context)
+            # Se for executada com sucesso e não for o aviso offline estático, devolve a resposta
+            if lunar_resp and not lunar_resp.startswith("LUNAR CORE EXCEPTION") and not lunar_resp.startswith("À sua disposição, Senhor. Contudo"):
+                return lunar_resp
+        except Exception as e:
+            print(f"Exceção ao chamar a Lunar AI de forma nativa: {e}")
 
     if GEMINI_KEYS_POOL:
         try:
