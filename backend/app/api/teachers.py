@@ -151,18 +151,24 @@ async def reject_teacher(
     if profile:
         await db.delete(profile)
         
-    # Deletar ficheiros do disco se existirem
-    if user.photo_url and os.path.exists(user.photo_url):
-        try:
-            os.remove(user.photo_url)
-        except Exception:
-            pass
-            
-    if user.resume_pdf_url and os.path.exists(user.resume_pdf_url):
-        try:
-            os.remove(user.resume_pdf_url)
-        except Exception:
-            pass
+    # Deletar ficheiros do disco se existirem (Usando caminhos absolutos seguros)
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+    
+    if user.photo_url:
+        photo_path = os.path.join(base_dir, user.photo_url)
+        if os.path.exists(photo_path):
+            try:
+                os.remove(photo_path)
+            except Exception as e:
+                print(f"Erro ao remover foto: {e}")
+                
+    if user.resume_pdf_url:
+        resume_path = os.path.join(base_dir, user.resume_pdf_url)
+        if os.path.exists(resume_path):
+            try:
+                os.remove(resume_path)
+            except Exception as e:
+                print(f"Erro ao remover pdf: {e}")
 
     # Deletar utilizador
     await db.delete(user)

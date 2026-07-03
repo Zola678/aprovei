@@ -369,8 +369,8 @@ export default function AIChatPage() {
     return (
       <div className="min-h-screen bg-background pt-24 pb-12 flex items-center justify-center px-6 font-sans relative overflow-hidden">
         {/* Background radial highlights */}
-        <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] bg-lilac-light/20 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse-slow"></div>
-        <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-orange/10 rounded-full blur-[150px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
+        <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] bg-lilac-light/20 rounded-full blur-[100px] hidden md:block pointer-events-none -z-10 animate-pulse-slow"></div>
+        <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-orange/10 rounded-full blur-[150px] hidden md:block pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
         
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
@@ -464,15 +464,15 @@ export default function AIChatPage() {
   return (
     <div className={
       isAuthenticated 
-        ? "w-full h-[calc(100vh-5rem)] flex flex-col max-w-[1600px] mx-auto font-sans relative overflow-hidden"
+        ? "w-full h-[calc(100dvh-5rem)] flex flex-col max-w-[1600px] mx-auto font-sans relative overflow-hidden"
         : "min-h-screen bg-background pt-24 pb-12 flex flex-col px-6 md:px-12 lg:px-20 xl:px-32 max-w-[1600px] mx-auto font-sans relative overflow-hidden"
     }>
       
       {/* Background Orbs */}
       {!isAuthenticated && (
         <>
-          <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] bg-lilac-light/20 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse-slow"></div>
-          <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-orange/10 rounded-full blur-[150px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
+          <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] bg-lilac-light/20 rounded-full blur-[100px] hidden md:block pointer-events-none -z-10 animate-pulse-slow"></div>
+          <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-orange/10 rounded-full blur-[150px] hidden md:block pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
         </>
       )}
 

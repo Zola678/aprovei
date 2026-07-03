@@ -21,8 +21,8 @@ export default function Footer() {
   return (
     <footer className="relative bg-lilac-dark text-white pt-24 pb-10 overflow-hidden border-t border-lilac-light/20">
       {/* Decorative Blur Backgrounds */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-accent/5 rounded-full blur-[100px] -translate-x-1/4 translate-y-1/3 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] hidden md:block translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-accent/5 rounded-full blur-[100px] hidden md:block -translate-x-1/4 translate-y-1/3 pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto px-6 relative z-10 font-sans">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 mb-20">
@@ -60,10 +60,15 @@ export default function Footer() {
               Recursos
             </h4>
             <ul className="space-y-4 text-white/70 text-sm font-semibold">
-              {['Provas Resolvidas', 'Tutores de Angola', 'Ensino Médio', 'Estudo com IA'].map((item, i) => (
+              {[
+                { label: 'Provas Resolvidas', href: '/exams' },
+                { label: 'Tutores de Angola', href: '/teachers' },
+                { label: 'Ensino Médio', href: '/ensino-medio' },
+                { label: 'Estudo com IA', href: '/ai-chat' }
+              ].map((item, i) => (
                 <li key={i}>
-                  <a className="hover:text-orange-accent hover:translate-x-2 transition-all duration-300 flex items-center gap-3 group" href="#">
-                    <span className="w-1.5 h-1.5 bg-orange-accent/30 group-hover:bg-orange-accent rounded-full transition-colors"></span> {item}
+                  <a className="hover:text-orange-accent hover:translate-x-2 transition-all duration-300 flex items-center gap-3 group" href={item.href}>
+                    <span className="w-1.5 h-1.5 bg-orange-accent/30 group-hover:bg-orange-accent rounded-full transition-colors"></span> {item.label}
                   </a>
                 </li>
               ))}
@@ -76,10 +81,15 @@ export default function Footer() {
               Institucional
             </h4>
             <ul className="space-y-4 text-white/70 text-sm font-semibold">
-              {['Quem Somos (PEA)', 'Fórum da Comunidade', 'Blog do Estudante', 'Perguntas Frequentes'].map((item, i) => (
+              {[
+                { label: 'Quem Somos (PEA)', href: '/about' },
+                { label: 'Fórum da Comunidade', href: '/forum' },
+                { label: 'Blog do Estudante', href: '/blog' },
+                { label: 'Perguntas Frequentes', href: '/faq' }
+              ].map((item, i) => (
                 <li key={i}>
-                  <a className="hover:text-orange-accent hover:translate-x-2 transition-all duration-300 flex items-center gap-3 group" href="#">
-                    <span className="w-1.5 h-1.5 bg-orange-accent/30 group-hover:bg-orange-accent rounded-full transition-colors"></span> {item}
+                  <a className="hover:text-orange-accent hover:translate-x-2 transition-all duration-300 flex items-center gap-3 group" href={item.href}>
+                    <span className="w-1.5 h-1.5 bg-orange-accent/30 group-hover:bg-orange-accent rounded-full transition-colors"></span> {item.label}
                   </a>
                 </li>
               ))}
@@ -150,8 +160,8 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} APROVEI. Desenvolvido em parceria com a PEA.
           </p>
           <div className="flex gap-8 text-sm font-semibold text-white/40">
-            <a href="#" className="hover:text-orange-accent transition-colors">Privacidade</a>
-            <a href="#" className="hover:text-orange-accent transition-colors">Termos de Uso</a>
+            <a href="/privacy" className="hover:text-orange-accent transition-colors">Privacidade</a>
+            <a href="/terms" className="hover:text-orange-accent transition-colors">Termos de Uso</a>
           </div>
         </div>
       </div>

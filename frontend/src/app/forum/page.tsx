@@ -26,7 +26,8 @@ import {
   Video as VideoIcon,
   Calendar,
   Play,
-  Users
+  Users,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import api, { getStorageUrl } from '@/lib/api';
@@ -222,6 +223,19 @@ export default function ForumPage() {
     }
   };
 
+  const handleDeletePost = async (id: number) => {
+    if (!confirm('Tens a certeza que desejas apagar esta publicação?')) return;
+    try {
+      await api.delete(`/forum/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPosts(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Erro ao apagar publicação:", err);
+      alert("Erro ao apagar publicação.");
+    }
+  };
+
   const getFullUrl = (url: string) => {
     return getStorageUrl(url);
   };
@@ -230,8 +244,8 @@ export default function ForumPage() {
     <div className="min-h-screen pb-20 px-4 md:px-8 max-w-[1600px] mx-auto relative z-10">
       
       {/* Background radial highlights */}
-      <div className="absolute top-[10%] right-[-15%] w-[600px] h-[600px] bg-lilac-light/10 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[20%] left-[-15%] w-[600px] h-[600px] bg-orange/5 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[10%] right-[-15%] w-[600px] h-[600px] bg-lilac-light/10 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[20%] left-[-15%] w-[600px] h-[600px] bg-orange/5 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
 
       {/* Hero Header */}
       <div className="text-left space-y-4 mb-10 mt-6">
@@ -630,6 +644,17 @@ export default function ForumPage() {
                             <Share2 className="w-5 h-5" />
                             <span className="hidden sm:inline">Partilhar</span>
                           </button>
+                          
+                          {(user?.role === 'admin' || user?.id === post.user_id) && (
+                            <button 
+                              onClick={() => handleDeletePost(post.id)}
+                              className="flex items-center gap-2 text-sm font-bold text-white/60 hover:text-red-500 transition-colors"
+                              title="Apagar Publicação"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                              <span className="hidden sm:inline">Apagar</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>

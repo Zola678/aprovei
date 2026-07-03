@@ -53,17 +53,9 @@ export default function TeacherDashboard({ user }: { user: any }) {
       <div className="bg-lilac-dark/45 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] backdrop-blur-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-orange/5 rounded-bl-full pointer-events-none"></div>
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          {user.photo_url ? (
-            <img 
-              src={getFullUrl(user.photo_url)} 
-              alt={user.full_name}
-              className="w-16 h-16 rounded-full border-2 border-orange/45 object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-orange/10 border-2 border-orange/20 flex items-center justify-center text-orange font-bold font-title text-xl">
-              {user.full_name ? user.full_name.substring(0, 2).toUpperCase() : 'EX'}
-            </div>
-          )}
+          <div className="w-16 h-16 rounded-full bg-orange/10 border-2 border-orange/20 flex items-center justify-center text-orange font-bold font-title text-xl">
+            {user.full_name ? user.full_name.substring(0, 2).toUpperCase() : 'EX'}
+          </div>
           <div>
             <h2 className="text-2xl sm:text-3xl font-black text-white">Painel do Explicador 🎓</h2>
             <p className="text-white/60">Bem-vindo(a), Prof. {user.full_name}!</p>

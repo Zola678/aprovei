@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import api, { getStorageUrl } from '@/lib/api';
-import { BookOpen, Search, Filter, Upload, FileText, CheckCircle2, AlertCircle, Plus, Eye, Zap, ArrowRight, GraduationCap, Play } from 'lucide-react';
+import { BookOpen, Search, Filter, Upload, FileText, CheckCircle2, AlertCircle, Plus, Eye, Zap, ArrowRight, GraduationCap, Play, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useModule } from '@/context/ModuleContext';
@@ -218,6 +218,22 @@ export default function ExamsPage() {
     }
   };
 
+  const handleDeleteExam = async (examId: number, endpoint: string) => {
+    if (!confirm('Tens a certeza que desejas apagar este material permanentemente?')) return;
+    try {
+      setLoading(true);
+      await api.delete(`/${endpoint}/${examId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccessMsg("Material apagado com sucesso.");
+      fetchData();
+    } catch (err: any) {
+      setErrorMsg("Erro ao apagar material.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getFullPdfUrl = (url: string) => {
     return getStorageUrl(url);
   };
@@ -227,7 +243,7 @@ export default function ExamsPage() {
   return (
     <div className="space-y-12 pb-16 relative font-sans px-4 md:px-6 z-10 max-w-[1600px] mx-auto">
       {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-lilac-light/10 rounded-full filter blur-[100px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-lilac-light/10 rounded-full filter blur-[100px] hidden md:block -z-10 pointer-events-none"></div>
       <div className="absolute bottom-20 left-10 w-72 h-72 bg-orange/5 rounded-full filter blur-[80px] -z-10 pointer-events-none"></div>
 
       {/* Header Section */}
@@ -673,11 +689,23 @@ export default function ExamsPage() {
               >
                 <div className="absolute -right-10 -top-10 w-32 h-32 bg-orange/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
                 
-                {activeModule !== 'high_school' && item.solved && (
-                  <div className="absolute top-0 right-0 bg-green-500 text-lilac-dark text-xs px-4 py-1.5 font-bold rounded-bl-2xl flex items-center gap-1.5 shadow-md">
+                  <div className="absolute top-0 right-0 bg-green-500 text-lilac-dark text-xs px-4 py-1.5 font-bold rounded-bl-2xl flex items-center gap-1.5 shadow-md z-20">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Resolvida</span>
                   </div>
+                )}
+
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteExam(item.id, activeModule === 'high_school' ? 'materials' : 'exams');
+                    }}
+                    className="absolute top-0 left-0 bg-red-500/80 text-white text-xs px-3 py-1.5 font-bold rounded-br-2xl flex items-center gap-1.5 shadow-md z-20 hover:bg-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Apagar</span>
+                  </button>
                 )}
                 
                 <div className="space-y-4 relative z-10 text-left">

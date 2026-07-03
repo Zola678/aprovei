@@ -190,7 +190,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
               </div>
               <div className="text-left">
                 <p className="text-xs font-bold text-white/40 uppercase tracking-wider">Pontos</p>
-                <p className="text-sm font-black text-white">1,240 XP</p>
+                <p className="text-sm font-black text-white">{user?.xp || 0} XP</p>
               </div>
             </div>
           </div>
@@ -217,7 +217,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
 
   // Render when logged in
   return (
-    <div className="flex min-h-screen bg-background w-full relative overflow-hidden">
+    <div className="flex h-[100dvh] bg-background w-full relative overflow-hidden">
       
       {/* Backdrop for Mobile Drawer */}
       {isMobileOpen && (
@@ -245,7 +245,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
         <aside 
           className={
             isPinned
-              ? "w-72 h-screen flex flex-col bg-lilac-dark/45 border-r border-white/10 sticky top-0 shadow-2xl backdrop-blur-2xl overflow-hidden relative"
+              ? "w-72 h-[100dvh] flex flex-col bg-lilac-dark/45 border-r border-white/10 sticky top-0 shadow-2xl backdrop-blur-2xl overflow-hidden relative"
               : "w-72 h-full -translate-x-full group-hover:translate-x-0 transition-transform duration-300 bg-lilac-dark/95 border-r border-white/10 backdrop-blur-2xl shadow-2xl flex flex-col relative"
           }
         >
@@ -263,7 +263,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
       </div>
 
       {/* Main Content Area */}
-      <main className={`flex-1 w-full max-w-full relative px-0 sm:px-8 py-0 sm:py-8 h-screen flex flex-col ${
+      <main className={`flex-1 w-full max-w-full relative px-0 sm:px-8 py-0 sm:py-8 h-full flex flex-col ${
         pathname === "/ai-chat" ? "overflow-hidden" : "overflow-x-hidden overflow-y-auto custom-scrollbar"
       }`}>
         

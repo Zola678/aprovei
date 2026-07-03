@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-AO" className="scroll-smooth bg-background">
-      <body className="bg-background text-text font-sans selection:bg-primary/30 selection:text-white min-h-screen flex flex-col">
+      <body className="bg-background text-text font-sans selection:bg-primary/30 selection:text-white min-h-[100dvh] flex flex-col">
         <SessionProviderWrapper>
           <ModuleProvider>
             <Navbar />

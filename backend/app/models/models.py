@@ -12,6 +12,7 @@ class User(Base):
     full_name = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     is_premium = Column(Boolean, default=False)
+    premium_until = Column(DateTime, nullable=True)
     educational_level = Column(String, default="university_access") # 'high_school', 'university_access', 'university'
     photo_url = Column(String, nullable=True)
     status = Column(String, default="active") # 'active', 'pending_interview', 'pending_approval', 'rejected'

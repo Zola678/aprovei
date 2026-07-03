@@ -63,14 +63,15 @@ export default function SettingsPage() {
         ...profileData // We might need to fetch the teacher profile separately if not included in /me
       });
 
-      // Quick fix to fetch teacher profile if role is teacher
+      // Fetch teacher profile if role is teacher
       if (data.role === 'teacher') {
-        const teachersRes = await api.get('/auth/admin/teachers/active', {
+        const teacherProfileRes = await api.get('/auth/me/teacher-profile', {
            headers: { Authorization: `Bearer ${token}` }
         }).catch(() => null);
         
-        // Se o current_user não tiver os detalhes do profile no endpoint me, tentamos encontrar nas infos
-        // Alternativamente, vamos apenas permitir a edição e preencher com vazio até terem um endpoint get my profile
+        if (teacherProfileRes && teacherProfileRes.data) {
+           setFormData(prev => ({ ...prev, ...teacherProfileRes.data }));
+        }
       }
     } catch (err) {
       showToast("Erro ao carregar o perfil.", "error");

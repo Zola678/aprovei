@@ -48,8 +48,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-x-hidden overflow-y-auto w-full m-0 p-0 pt-28 pb-12">
       {/* Background decorations */}
-      <div className="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-lilac-light/20 rounded-full filter blur-[100px] -z-10 pointer-events-none animate-pulse-slow"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-orange/10 rounded-full filter blur-[120px] -z-10 pointer-events-none animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
+      <div className="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-lilac-light/20 rounded-full filter blur-[100px] hidden md:block -z-10 pointer-events-none animate-pulse-slow"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-orange/10 rounded-full filter blur-[120px] hidden md:block -z-10 pointer-events-none animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
       
       <div className="w-full max-w-7xl min-h-[80vh] h-auto md:rounded-[3rem] overflow-visible flex flex-col md:flex-row bg-lilac-base/15 border border-lilac-light/20 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative z-10 py-6 md:py-0">
         
@@ -103,7 +103,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-1">
                   <label className="text-sm font-bold text-white/60 uppercase tracking-wider">Senha</label>
-                  <a href="#" className="text-xs text-orange font-bold hover:text-orange/80 transition-colors">Esqueceste a senha?</a>
+                  <a href="/auth/forgot-password" className="text-xs text-orange font-bold hover:text-orange/80 transition-colors">Esqueceste a senha?</a>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/35 group-focus-within:text-orange transition-colors" />

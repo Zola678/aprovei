@@ -66,8 +66,8 @@ export default function CheckoutPage() {
     <div className="max-w-6xl mx-auto space-y-10 py-12 px-4 md:px-6 relative z-10">
       
       {/* Background radial highlights */}
-      <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[10%] left-[-20%] w-[500px] h-[500px] bg-orange/5 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[10%] left-[-20%] w-[500px] h-[500px] bg-orange/5 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
 
       <a href="/" className="inline-flex items-center gap-2 text-white/60 font-bold hover:text-orange transition-colors">
         <ArrowLeft className="w-4 h-4" /> Voltar
@@ -116,21 +116,6 @@ export default function CheckoutPage() {
               </div>
             </button>
 
-            <button 
-              onClick={() => setPaymentMethod('transfer')}
-              className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${paymentMethod === 'transfer' ? 'border-orange bg-orange/10 shadow-[0_0_15px_rgba(255,107,0,0.15)]' : 'border-lilac-light/20 bg-lilac-dark/40 hover:border-orange/30'}`}
-            >
-              <div className="w-12 h-12 bg-lilac-dark border border-lilac-light/30 rounded-lg flex items-center justify-center text-white">
-                <CreditCard className="w-6 h-6 text-orange" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-bold text-white">Transferência Bancária</p>
-                <p className="text-xs text-white/50 font-medium">Envio de comprovativo manual</p>
-              </div>
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'transfer' ? 'border-orange' : 'border-white/30'}`}>
-                {paymentMethod === 'transfer' && <div className="w-2.5 h-2.5 rounded-full bg-orange"></div>}
-              </div>
-            </button>
           </div>
 
           <button 

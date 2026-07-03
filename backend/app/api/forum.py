@@ -12,6 +12,8 @@ router = APIRouter()
 @router.get("/", response_model=list[ForumPost])
 async def list_posts(
     category: str = Query(None, description="Filtrar por categoria"),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db)
 ):
     query = select(PostModel).options(
@@ -23,8 +25,9 @@ async def list_posts(
     if category:
         query = query.where(PostModel.category == category)
         
+    query = query.offset(offset).limit(limit)
     result = await db.execute(query)
-    posts = result.scalars().all()
+    posts = result.scalars().unique().all()
     
     # Auto-start calls with >= 5 confirmations
     updated = False
@@ -281,3 +284,51 @@ async def end_call(
     await db.commit()
     await db.refresh(post)
     return post
+
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(
+    post_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    stmt = select(PostModel).where(PostModel.id == post_id)
+    result = await db.execute(stmt)
+    post = result.scalars().first()
+    
+    if not post:
+        raise HTTPException(status_code=404, detail="Discussão não encontrada.")
+        
+    # Somente o autor do post ou um administrador pode apagar
+    if post.user_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas o autor ou um administrador pode apagar esta discussão.")
+        
+    await db.delete(post)
+    await db.commit()
+    return None
+
+@router.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_comment(
+    comment_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    stmt = select(CommentModel).where(CommentModel.id == comment_id)
+    result = await db.execute(stmt)
+    comment = result.scalars().first()
+    
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comentário não encontrado.")
+        
+    # Somente o autor do comentário, o autor do post original ou admin podem apagar
+    stmt_post = select(PostModel).where(PostModel.id == comment.post_id)
+    result_post = await db.execute(stmt_post)
+    post = result_post.scalars().first()
+    
+    is_post_author = post and post.user_id == current_user.id
+    
+    if comment.user_id != current_user.id and not is_post_author and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas o autor, o criador da discussão ou um administrador podem apagar este comentário.")
+        
+    await db.delete(comment)
+    await db.commit()
+    return None

@@ -68,6 +68,8 @@ async def upload_material(
 async def list_materials(
     grade: int = Query(None, description="Filtrar por classe (10, 11, 12)"),
     subject: str = Query(None, description="Filtrar por disciplina"),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db)
 ):
     query = select(MaterialModel)
@@ -77,5 +79,36 @@ async def list_materials(
     if subject:
         query = query.where(MaterialModel.subject.ilike(f"%{subject}%"))
         
+    query = query.offset(offset).limit(limit)
     result = await db.execute(query)
     return result.scalars().all()
+
+@router.delete("/{material_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_material(
+    material_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores podem apagar materiais.")
+        
+    stmt = select(MaterialModel).where(MaterialModel.id == material_id)
+    result = await db.execute(stmt)
+    material = result.scalars().first()
+    
+    if not material:
+        raise HTTPException(status_code=404, detail="Material não encontrado.")
+        
+    # Remove associated file if it's a PDF stored locally
+    if material.file_url and not material.file_url.startswith("http"):
+        try:
+            import os
+            abs_path = os.path.abspath(material.file_url)
+            if os.path.exists(abs_path):
+                os.remove(abs_path)
+        except Exception as e:
+            print(f"Error removing file {material.file_url}: {e}")
+            
+    await db.delete(material)
+    await db.commit()
+    return None

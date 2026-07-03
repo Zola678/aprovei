@@ -71,6 +71,8 @@ async def list_exams(
     year: int = Query(None, description="Filtrar por ano"),
     category: str = Query(None, description="Filtrar por categoria (acesso ou exame_especial)"),
     solved: bool = Query(None, description="Filtrar por resolvidas"),
+    limit: int = Query(20, ge=1, le=100, description="Limite de resultados"),
+    offset: int = Query(0, ge=0, description="Offset de resultados"),
     db: AsyncSession = Depends(get_db)
 ):
     query = select(ExamModel)
@@ -87,6 +89,7 @@ async def list_exams(
     if solved is not None:
         query = query.where(ExamModel.solved == solved)
         
+    query = query.offset(offset).limit(limit)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -128,6 +131,74 @@ async def upload_exam_solution(
         
     exam.solved = True
     exam.solution_pdf_url = file_path
+    
+    await db.commit()
+    await db.refresh(exam)
+    return exam
+
+@router.delete("/{exam_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_exam(
+    exam_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Apenas administradores podem excluir provas.")
+        
+    stmt = select(ExamModel).where(ExamModel.id == exam_id)
+    result = await db.execute(stmt)
+    exam = result.scalars().first()
+    
+    if not exam:
+        raise HTTPException(status_code=404, detail="Prova não encontrada.")
+        
+    # Remove files if exist
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+    if exam.pdf_url:
+        path = os.path.join(base_dir, exam.pdf_url)
+        if os.path.exists(path):
+            try: os.remove(path)
+            except: pass
+    if exam.solution_pdf_url:
+        path = os.path.join(base_dir, exam.solution_pdf_url)
+        if os.path.exists(path):
+            try: os.remove(path)
+            except: pass
+            
+    await db.delete(exam)
+    await db.commit()
+    return None
+
+@router.put("/{exam_id}", response_model=Exam)
+async def update_exam(
+    exam_id: int,
+    university: str = Form(None),
+    subject: str = Form(None),
+    year: int = Form(None),
+    category: str = Form(None),
+    description: str = Form(None),
+    answer_key: str = Form(None),
+    questions_text: str = Form(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role not in ["teacher", "admin"]:
+        raise HTTPException(status_code=403, detail="Sem permissão para editar provas.")
+        
+    stmt = select(ExamModel).where(ExamModel.id == exam_id)
+    result = await db.execute(stmt)
+    exam = result.scalars().first()
+    
+    if not exam:
+        raise HTTPException(status_code=404, detail="Prova não encontrada.")
+        
+    if university: exam.university = university.upper()
+    if subject: exam.subject = subject.capitalize()
+    if year: exam.year = year
+    if category: exam.category = category
+    if description is not None: exam.description = description
+    if answer_key is not None: exam.answer_key = answer_key
+    if questions_text is not None: exam.questions_text = questions_text
     
     await db.commit()
     await db.refresh(exam)

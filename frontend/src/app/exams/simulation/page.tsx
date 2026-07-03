@@ -109,8 +109,8 @@ export default function SimulationPage() {
     return (
       <div className="w-full max-w-full overflow-hidden px-4 py-6 md:p-8 flex items-center justify-center min-h-[calc(100vh-10rem)] sm:min-h-[80vh] relative z-10">
         {/* Background decorations */}
-        <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-lilac-light/10 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-orange/5 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-lilac-light/10 rounded-full filter blur-[120px] hidden md:block -z-10 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-orange/5 rounded-full filter blur-[120px] hidden md:block -z-10 pointer-events-none"></div>
         
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
@@ -232,8 +232,8 @@ export default function SimulationPage() {
     <div className="max-w-4xl mx-auto py-6 sm:py-10 px-4 sm:px-6 relative z-10 overflow-hidden rounded-[2rem]">
       
       {/* Background decorations */}
-      <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[10%] left-[-20%] w-[500px] h-[500px] bg-orange/5 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[10%] left-[-20%] w-[500px] h-[500px] bg-orange/5 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
 
       {/* Header Stats */}
       <div className="flex flex-wrap items-center justify-between mb-6 sm:mb-8 gap-4 bg-lilac-base/20 p-4 rounded-2xl border border-lilac-light/20 shadow-sm backdrop-blur-md">

@@ -161,8 +161,8 @@ export default function PreparatorioPage() {
   return (
     <div className="space-y-16 pb-24 overflow-hidden relative z-10 px-4 md:px-8 max-w-[1600px] mx-auto text-left font-sans">
       {/* Background decorations */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-lilac-light/15 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
-      <div className="absolute top-1/2 right-10 w-80 h-80 bg-orange/5 rounded-full filter blur-[100px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-20 left-10 w-96 h-96 bg-lilac-light/15 rounded-full filter blur-[120px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute top-1/2 right-10 w-80 h-80 bg-orange/5 rounded-full filter blur-[100px] hidden md:block -z-10 pointer-events-none"></div>
 
       {/* Hero Section */}
       <motion.section 

@@ -29,8 +29,8 @@ export default function BlogPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-16 py-16 px-4 md:px-8 relative z-10 font-sans">
       {/* Background decorations */}
-      <div className="absolute top-[15%] right-[-10%] w-[450px] h-[450px] bg-lilac-light/10 rounded-full filter blur-[130px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[15%] left-[-10%] w-[450px] h-[450px] bg-orange/5 rounded-full filter blur-[130px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[15%] right-[-10%] w-[450px] h-[450px] bg-lilac-light/10 rounded-full filter blur-[130px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[15%] left-[-10%] w-[450px] h-[450px] bg-orange/5 rounded-full filter blur-[130px] hidden md:block -z-10 pointer-events-none"></div>
 
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-md">

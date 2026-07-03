@@ -617,7 +617,7 @@ export default function Home() {
         <div className="mx-auto max-w-[1500px] px-6 md:px-8">
           <div className="card-lilac-glass p-8 md:p-16 flex flex-col lg:flex-row items-center gap-12 lg:gap-16 border-orange-accent/20">
             {/* Efeito luminoso de fundo */}
-            <div className="absolute -top-1/2 -right-1/4 size-[500px] bg-orange-accent/10 rounded-full blur-[120px] animate-pulse-slow" />
+            <div className="absolute -top-1/2 -right-1/4 size-[500px] bg-orange-accent/10 rounded-full blur-[120px] hidden md:block animate-pulse-slow" />
 
             {/* Conteúdo Esquerda */}
             <div className="lg:w-5/12 space-y-6 relative z-10 text-left">

@@ -147,8 +147,8 @@ export default function PostDetailPage({ params }: { params: { post_id: string }
     <div className="max-w-4xl mx-auto space-y-6 pb-20 px-4 md:px-6 relative z-10">
       
       {/* Background decoration */}
-      <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[10%] left-[-20%] w-[500px] h-[500px] bg-orange/5 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[10%] right-[-20%] w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[10%] left-[-20%] w-[500px] h-[500px] bg-orange/5 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
 
       {/* Back button */}
       <button

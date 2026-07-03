@@ -190,8 +190,8 @@ export default function TeachersPage() {
   return (
     <div className="space-y-12 pb-16 relative px-4 md:px-6 z-10 max-w-[1600px] mx-auto font-sans">
       {/* Background decorations */}
-      <div className="absolute top-20 right-20 w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-40 left-0 w-[600px] h-[600px] bg-orange/5 rounded-full filter blur-[150px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-20 right-20 w-[500px] h-[500px] bg-lilac-light/10 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-40 left-0 w-[600px] h-[600px] bg-orange/5 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none"></div>
 
       <motion.div 
         initial={{ opacity: 0, y: -20 }}

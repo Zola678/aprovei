@@ -24,8 +24,8 @@ export default function FAQPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-16 py-16 px-4 md:px-8 relative z-10 font-sans">
       {/* Background decoration highlights */}
-      <div className="absolute top-[10%] left-[-10%] w-[400px] h-[400px] bg-lilac-light/10 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[20%] right-[-10%] w-[400px] h-[400px] bg-orange/5 rounded-full filter blur-[120px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[10%] left-[-10%] w-[400px] h-[400px] bg-lilac-light/10 rounded-full filter blur-[120px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[20%] right-[-10%] w-[400px] h-[400px] bg-orange/5 rounded-full filter blur-[120px] hidden md:block -z-10 pointer-events-none"></div>
 
       {/* Hero Header */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">

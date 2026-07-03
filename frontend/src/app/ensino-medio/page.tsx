@@ -66,8 +66,8 @@ export default function EnsinoMedioPage() {
     <div className="min-h-screen bg-transparent pt-12 pb-20 px-6 md:px-12 lg:px-20 xl:px-32 font-sans overflow-hidden relative z-10">
       
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lilac-light/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
-      <div className="absolute top-[40%] left-[-10%] w-[600px] h-[600px] bg-orange/5 rounded-full blur-[150px] pointer-events-none -z-10"></div>
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lilac-light/10 rounded-full blur-[150px] hidden md:block pointer-events-none -z-10"></div>
+      <div className="absolute top-[40%] left-[-10%] w-[600px] h-[600px] bg-orange/5 rounded-full blur-[150px] hidden md:block pointer-events-none -z-10"></div>
 
       {/* Split Hero Section */}
       <div className="max-w-[1600px] mx-auto grid lg:grid-cols-2 gap-16 items-center mb-32 relative z-10">

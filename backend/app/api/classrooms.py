@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -40,9 +40,12 @@ async def create_classroom(
 
 @router.get("/", response_model=list[ClassroomResponse])
 async def list_classrooms(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db)
 ):
     stmt = select(ClassroomModel).options(selectinload(ClassroomModel.teacher)).order_by(ClassroomModel.created_at.desc())
+    stmt = stmt.offset(offset).limit(limit)
     res = await db.execute(stmt)
     return res.scalars().all()
 

@@ -5,8 +5,8 @@ export default function AboutPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-20 py-16 px-4 md:px-8 relative z-10 font-sans">
       {/* Background decorations */}
-      <div className="absolute top-[10%] left-[-10%] w-[450px] h-[450px] bg-lilac-light/10 rounded-full filter blur-[130px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[20%] right-[-10%] w-[450px] h-[450px] bg-orange/5 rounded-full filter blur-[130px] -z-10 pointer-events-none"></div>
+      <div className="absolute top-[10%] left-[-10%] w-[450px] h-[450px] bg-lilac-light/10 rounded-full filter blur-[130px] hidden md:block -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[20%] right-[-10%] w-[450px] h-[450px] bg-orange/5 rounded-full filter blur-[130px] hidden md:block -z-10 pointer-events-none"></div>
 
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-3xl mx-auto">

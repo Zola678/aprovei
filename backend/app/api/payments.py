@@ -88,7 +88,15 @@ async def payment_webhook(
         result_user = await db.execute(stmt_user)
         user = result_user.scalar_one_or_none()
         if user:
+            from datetime import datetime, timedelta
             user.is_premium = True
+            
+            # Adiciona 30 dias a partir da data atual ou estende se já for premium
+            current_premium_until = user.premium_until or datetime.utcnow()
+            if current_premium_until < datetime.utcnow():
+                current_premium_until = datetime.utcnow()
+                
+            user.premium_until = current_premium_until + timedelta(days=30)
     elif payload.status.lower() == "failed":
         payment.status = "failed"
 

@@ -576,6 +576,22 @@ async def send_message(
     if not session:
         raise HTTPException(status_code=404, detail="Sessão de chat não encontrada.")
         
+    # 1.5 Rate Limiting Manual (Free vs Premium)
+    from sqlalchemy import func
+    from datetime import datetime, timedelta
+    
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    msg_count_query = select(func.count(AIChatMessage.id)).join(AIChatSession).where(
+        AIChatSession.user_id == current_user.id,
+        AIChatMessage.sender == "user",
+        AIChatMessage.created_at >= today_start
+    )
+    msg_count_res = await db.execute(msg_count_query)
+    msg_count = msg_count_res.scalar() or 0
+    
+    if not current_user.is_premium and msg_count >= 10:
+        raise HTTPException(status_code=429, detail="Atingiste o limite diário de mensagens gratuitas (10). Assina o Premium para uso ilimitado.")
+
     # 2. Guardar a mensagem do utilizador na base de dados (com anexo)
     db_content = msg_data.content
     if msg_data.file_url:

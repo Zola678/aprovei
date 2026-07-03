@@ -267,8 +267,8 @@ export default function StudyHubPage() {
   return (
     <div className="space-y-12 pb-20 relative max-w-[1600px] mx-auto px-4 md:px-8">
       {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full filter blur-[150px] -z-10 pointer-events-none mix-blend-screen"></div>
-      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent/15 rounded-full filter blur-[150px] -z-10 pointer-events-none mix-blend-screen"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none mix-blend-screen"></div>
+      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent/15 rounded-full filter blur-[150px] hidden md:block -z-10 pointer-events-none mix-blend-screen"></div>
 
       <motion.div 
         initial={{ opacity: 0, y: -20 }}

@@ -28,6 +28,9 @@ class SocialLoginRequest(BaseModel):
     token: str # ID Token (Google) ou Access Token (GitHub)
     role: str = "student" # Papel padrão caso seja um novo registo
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
@@ -70,7 +73,6 @@ async def register_teacher(
     full_name: str = Form(...),
     phone: str = Form(...),
     educational_level: str = Form("university_access"),
-    photo: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
     # 1. Verificar se e-mail já existe
@@ -80,31 +82,6 @@ async def register_teacher(
     if existing_user:
         raise HTTPException(status_code=400, detail="E-mail já registrado.")
         
-    # 2. Salvar a foto de perfil
-    if not photo.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Apenas arquivos de imagem são permitidos.")
-        
-    file_ext = os.path.splitext(photo.filename)[1].lower()
-    allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
-    if file_ext not in allowed_extensions:
-        raise HTTPException(status_code=400, detail="Extensão de arquivo não permitida. Use JPG, PNG ou WEBP.")
-        
-    file_name = f"{uuid.uuid4()}{file_ext}"
-    file_path = os.path.join(UPLOAD_PHOTO_DIR, file_name)
-    
-    # 2.1 Limitar o tamanho do ficheiro (opcional mas recomendado)
-    photo.file.seek(0, 2)
-    file_size = photo.file.tell()
-    photo.file.seek(0)
-    if file_size > 5 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="A imagem é demasiado grande (máximo 5MB).")
-
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(photo.file, buffer)
-        
-    photo_url = f"storage/photos/{file_name}"
-    
     # 3. Criar o utilizador
     hashed_password = get_password_hash(password)
     new_user = UserModel(
@@ -115,7 +92,7 @@ async def register_teacher(
         phone=phone,
         educational_level=educational_level,
         status="pending_interview", # Inicia na fase de entrevista online
-        photo_url=photo_url
+        photo_url=None
     )
     
     db.add(new_user)
@@ -169,6 +146,17 @@ async def login_oauth2(form_data: OAuth2PasswordRequestForm = Depends(), db: Asy
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    stmt = select(UserModel).where(UserModel.email == data.email)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    
+    # Em produção, você enviaria um e-mail com o token de redefinição de senha aqui.
+    # Por razões de segurança, sempre retornamos a mesma mensagem.
+    return {"message": "Se o e-mail existir, você receberá as instruções de recuperação em breve."}
 
 @router.post("/social-login", response_model=TokenResponse)
 async def social_login(request: Request, credentials: SocialLoginRequest, db: AsyncSession = Depends(get_db)):
@@ -251,6 +239,25 @@ from app.api.deps import get_current_user
 @router.get("/me", response_model=User)
 async def get_me(current_user: UserModel = Depends(get_current_user)):
     return current_user
+
+@router.get("/me/teacher-profile")
+async def get_me_teacher_profile(db: AsyncSession = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=400, detail="Not a teacher")
+    from app.models.models import TeacherProfile as TeacherModel
+    stmt = select(TeacherModel).where(TeacherModel.user_id == current_user.id)
+    res = await db.execute(stmt)
+    profile = res.scalars().first()
+    if profile:
+        return {
+            "specialty": profile.specialty,
+            "bio": profile.bio,
+            "price_per_hour": profile.price_per_hour,
+            "whatsapp": profile.whatsapp,
+            "location": profile.location,
+            "subject_tags": profile.subject_tags
+        }
+    return {}
 
 @router.put("/me", response_model=User)
 async def update_me(
