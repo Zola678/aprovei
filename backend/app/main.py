@@ -141,11 +141,20 @@ async def on_startup():
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS years_of_experience INTEGER"))
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS what_intends TEXT"))
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS resume_pdf_url VARCHAR(255)"))
-                    
+                    # Coluna premium_until em falta na BD
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMP"))
+
                     # Migração para exames e desafios IA
                     await conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS answer_key TEXT"))
                     await conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS questions_text TEXT"))
                     await conn.execute(text("ALTER TABLE ai_chat_sessions ADD COLUMN IF NOT EXISTS exam_id INTEGER REFERENCES exams(id)"))
+
+                    # Migração para live calls no fórum
+                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS is_call BOOLEAN DEFAULT FALSE"))
+                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_title VARCHAR(255)"))
+                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_scheduled_at TIMESTAMP"))
+                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_status VARCHAR(50) DEFAULT 'scheduled'"))
+                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_url VARCHAR(255)"))
                 except Exception as e:
                     logger.error(f"Erro ao rodar migração de tabelas no startup: {e}")
             logger.info("Banco de dados conectado e inicializado com sucesso!")
