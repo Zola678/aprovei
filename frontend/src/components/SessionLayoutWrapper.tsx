@@ -301,7 +301,7 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
                      </div>
                    </div>
                    <div className="px-2 py-2 flex flex-col gap-1">
-                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+                     <button onClick={() => { setIsProfileMenuOpen(false); router.push('/dashboard/settings'); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors">
                        <User className="w-4 h-4 text-white/50" />
                        O meu Perfil
                      </button>
