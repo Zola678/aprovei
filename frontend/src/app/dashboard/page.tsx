@@ -42,8 +42,8 @@ export default function DashboardPage() {
     try {
       const [tasksRes, materialsRes, examsRes] = await Promise.all([
         api.get('/study/tasks', { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => ({ data: [] })),
-        api.get('/materials', { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => ({ data: [] })),
-        api.get('/exams', { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => ({ data: [] }))
+        api.get('/materials/', { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => ({ data: [] })),
+        api.get('/exams/', { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => ({ data: [] }))
       ]);
       
       setTasks(tasksRes.data);

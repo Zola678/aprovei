@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-import { Search, MapPin, Users, Star, MessageSquare, Plus, Save, AlertCircle, CheckCircle2, Navigation, ShieldCheck, Zap, FileText } from 'lucide-react';
+import { Search, MapPin, Users, Star, MessageSquare, Plus, Save, AlertCircle, CheckCircle2, Navigation, ShieldCheck, Zap, FileText, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
@@ -72,7 +72,7 @@ export default function TeachersPage() {
       if (customFilters.max_price) queryParams.push(`max_price=${customFilters.max_price}`);
       
       const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
-      const res = await api.get(`/teachers${queryString}`);
+      const res = await api.get(`/teachers/${queryString}`);
       setTeachers(res.data);
     } catch (err) {
       console.error("Erro ao obter professores", err);

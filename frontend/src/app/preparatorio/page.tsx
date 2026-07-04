@@ -40,7 +40,7 @@ export default function PreparatorioPage() {
 
   const fetchClassroomsOnly = async () => {
     try {
-      const res = await api.get('/classrooms');
+      const res = await api.get('/classrooms/');
       setClassrooms(res.data);
     } catch (err) {
       console.error("Erro ao obter turmas", err);
@@ -50,7 +50,7 @@ export default function PreparatorioPage() {
   const fetchData = async (authToken: string, currentUser: any) => {
     setLoading(true);
     try {
-      const classRes = await api.get('/classrooms');
+      const classRes = await api.get('/classrooms/');
       setClassrooms(classRes.data);
 
       if (currentUser.role === 'student') {

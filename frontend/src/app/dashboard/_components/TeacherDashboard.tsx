@@ -18,7 +18,7 @@ export default function TeacherDashboard({ user }: { user: any }) {
     try {
       const token = localStorage.getItem('token');
       // Buscar turmas cadastradas na plataforma
-      const classRes = await api.get('/classrooms');
+      const classRes = await api.get('/classrooms/');
       const myClasses = classRes.data.filter((c: any) => c.teacher_id === user.id);
       setClassrooms(myClasses);
 

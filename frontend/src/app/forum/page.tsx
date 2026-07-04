@@ -120,7 +120,7 @@ export default function ForumPage() {
   const fetchPosts = async (cat: string) => {
     setLoading(true);
     try {
-      const url = cat === 'all' ? '/forum' : `/forum?category=${cat}`;
+      const url = cat === 'all' ? '/forum/' : `/forum/?category=${cat}`;
       const res = await api.get(url);
       setPosts(res.data);
     } catch (err) {

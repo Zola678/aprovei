@@ -74,7 +74,7 @@ export default function ExamsPage() {
         if (filters.subject) queryParams.push(`subject=${filters.subject}`);
         const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
         
-        const res = await api.get(`/materials${queryString}`);
+        const res = await api.get(`/materials/${queryString}`);
         setItems(res.data);
       } else {
         // Buscar exames de Acesso Superior
@@ -86,7 +86,7 @@ export default function ExamsPage() {
         if (filters.solved !== '') queryParams.push(`solved=${filters.solved}`);
         const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
         
-        const res = await api.get(`/exams${queryString}`);
+        const res = await api.get(`/exams/${queryString}`);
         setItems(res.data);
       }
     } catch (err) {
