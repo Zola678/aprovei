@@ -19,8 +19,10 @@ export default function RegisterPage() {
     role: 'student',
     full_name: '',
     phone: '',
-    educational_level: 'university_access'
+    educational_level: 'university_access',
+    location: ''
   });
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -49,7 +51,19 @@ export default function RegisterPage() {
     }
     
     try {
-      await api.post('/auth/register', formData);
+      const formPayload = new FormData();
+      Object.keys(formData).forEach(key => {
+        formPayload.append(key, (formData as any)[key]);
+      });
+      if (file) {
+        formPayload.append('file', file);
+      }
+
+      await api.post('/auth/register', formPayload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       setSuccess(true);
       setTimeout(() => {
         router.push('/auth/login');
@@ -191,6 +205,28 @@ export default function RegisterPage() {
                       <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                   </div>
+                </div>
+
+                {formData.role === 'teacher' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Localização (Ex: Luanda, Talatona)</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Sua localização para os alunos verem no mapa"
+                      className="w-full px-4 py-3.5 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl focus:border-orange/50 focus:ring-4 focus:ring-orange/15 outline-none transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
+                      onChange={e => setFormData({ ...formData, location: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Foto / Documento (Opcional)</label>
+                  <input
+                    type="file"
+                    className="w-full p-2 bg-lilac-dark/50 border border-lilac-light/20 rounded-2xl text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-orange/20 file:text-orange hover:file:bg-orange/30 cursor-pointer"
+                    onChange={e => setFile(e.target.files ? e.target.files[0] : null)}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

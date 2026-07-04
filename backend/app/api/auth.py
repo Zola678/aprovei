@@ -38,8 +38,19 @@ class TokenResponse(BaseModel):
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute") # Protect registration from automated spamming
-async def register_user(request: Request, user_in: UserCreate, db: AsyncSession = Depends(get_db)):
-    stmt = select(UserModel).where(UserModel.email == user_in.email)
+async def register_user(
+    request: Request, 
+    email: str = Form(...),
+    password: str = Form(...),
+    role: str = Form(...),
+    full_name: str = Form(None),
+    phone: str = Form(None),
+    educational_level: str = Form("university_access"),
+    location: str = Form(None),
+    file: UploadFile = File(None),
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(UserModel).where(UserModel.email == email)
     result = await db.execute(stmt)
     existing_user = result.scalars().first()
     
@@ -49,21 +60,48 @@ async def register_user(request: Request, user_in: UserCreate, db: AsyncSession 
             detail="E-mail já registrado."
         )
 
-    hashed_password = get_password_hash(user_in.password)
-    status_val = "pending_interview" if user_in.role == "teacher" else "active"
+    # Process file upload if any
+    photo_url_val = None
+    if file and file.filename:
+        os.makedirs(UPLOAD_PHOTO_DIR, exist_ok=True)
+        ext = file.filename.split('.')[-1]
+        new_filename = f"{uuid.uuid4().hex}.{ext}"
+        file_path = os.path.join(UPLOAD_PHOTO_DIR, new_filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        photo_url_val = f"/storage/photos/{new_filename}"
+
+    hashed_password = get_password_hash(password)
+    status_val = "pending_interview" if role == "teacher" else "active"
     new_user = UserModel(
-        email=user_in.email,
+        email=email,
         password_hash=hashed_password,
-        role=user_in.role,
-        full_name=user_in.full_name,
-        phone=user_in.phone,
-        educational_level=user_in.educational_level,
-        status=status_val
+        role=role,
+        full_name=full_name,
+        phone=phone,
+        educational_level=educational_level,
+        status=status_val,
+        photo_url=photo_url_val
     )
     
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
+    
+    if role == "teacher" and location:
+        from app.models.models import TeacherProfile as TeacherModel
+        profile = TeacherModel(
+            user_id=new_user.id,
+            specialty="Geral",
+            bio="",
+            price_per_hour=0,
+            whatsapp=phone or "",
+            location=location,
+            subject_tags=""
+        )
+        db.add(profile)
+        await db.commit()
+        
     return new_user
 
 @router.post("/register-teacher", status_code=status.HTTP_201_CREATED)

@@ -491,13 +491,33 @@ export default function TeachersPage() {
         transition={{ duration: 0.6, delay: 0.3 }}
         className="relative z-0 mt-8 mb-4 border border-lilac-light/20 rounded-[2rem] overflow-hidden shadow-md"
       >
-        <MapComponent teachers={teachers.map((t: any, i) => ({
-          id: t.id || i,
-          name: t.user?.full_name || 'Explicador Aprovei',
-          specialty: t.specialty || 'Apoio Geral',
-          lat: -8.839988 + (Math.random() * 0.1 - 0.05),
-          lng: 13.289437 + (Math.random() * 0.1 - 0.05)
-        }))} />
+        <MapComponent teachers={teachers.map((t: any, i) => {
+          // Simple mock geocoding for Angola regions based on location string
+          const locStr = (t.location || '').toLowerCase();
+          let lat = -8.839988;
+          let lng = 13.289437;
+          if (locStr.includes('talatona')) { lat = -8.918; lng = 13.189; }
+          else if (locStr.includes('viana')) { lat = -8.900; lng = 13.372; }
+          else if (locStr.includes('kilamba')) { lat = -8.995; lng = 13.220; }
+          else if (locStr.includes('mutamba') || locStr.includes('luanda')) { lat = -8.814; lng = 13.230; }
+          else if (locStr.includes('belas')) { lat = -9.055; lng = 13.195; }
+          else if (locStr.includes('benguela')) { lat = -12.576; lng = 13.405; }
+          else if (locStr.includes('huambo')) { lat = -12.776; lng = 15.726; }
+          else if (locStr.includes('lubango')) { lat = -14.917; lng = 13.492; }
+          else {
+            // Add slight random offset if unknown so they don't all overlap exactly
+            lat += (Math.random() * 0.05 - 0.025);
+            lng += (Math.random() * 0.05 - 0.025);
+          }
+
+          return {
+            id: t.id || i,
+            name: t.user?.full_name || 'Explicador Aprovei',
+            specialty: t.specialty || 'Apoio Geral',
+            lat,
+            lng
+          };
+        })} />
       </motion.div>
 
       {/* Grid List */}
@@ -540,30 +560,42 @@ export default function TeachersPage() {
                       </h3>
                       <p className="text-sm text-orange font-bold mt-1">{teacher.specialty}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-yellow-400 text-lilac-dark px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                      <span>{Number(teacher.rating).toFixed(1)}</span>
-                    </div>
+                    {bState === 'paid' && (
+                      <div className="flex items-center gap-1.5 bg-yellow-400 text-lilac-dark px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        <span>{Number(teacher.rating).toFixed(1)}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-white/60 text-sm font-medium">
-                    <MapPin className="w-4 h-4 text-white/40 shrink-0" />
-                    <span>{teacher.location || 'Angola'}</span>
-                  </div>
+                  {bState === 'paid' ? (
+                    <>
+                      <div className="flex items-center gap-2 text-white/60 text-sm font-medium">
+                        <MapPin className="w-4 h-4 text-white/40 shrink-0" />
+                        <span>{teacher.location || 'Angola'}</span>
+                      </div>
 
-                  {teacher.subject_tags && (
-                    <div className="flex flex-wrap gap-2">
-                      {teacher.subject_tags.split(',').map((tag: string, i: number) => (
-                        <span key={i} className="bg-lilac-dark/60 border border-lilac-light/20 text-white/80 text-xs px-2.5 py-1 rounded-lg font-bold shadow-sm">
-                          {tag.trim()}
-                        </span>
-                      ))}
+                      {teacher.subject_tags && (
+                        <div className="flex flex-wrap gap-2">
+                          {teacher.subject_tags.split(',').map((tag: string, i: number) => (
+                            <span key={i} className="bg-lilac-dark/60 border border-lilac-light/20 text-white/80 text-xs px-2.5 py-1 rounded-lg font-bold shadow-sm">
+                              {tag.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="text-white/70 text-sm leading-relaxed line-clamp-3 font-medium">
+                        {teacher.bio}
+                      </p>
+                    </>
+                  ) : (
+                    <div className="py-2">
+                      <p className="text-white/50 text-sm italic">
+                        As informações detalhadas (contato, biografia, localização exata) serão exibidas apenas após a confirmação e pagamento.
+                      </p>
                     </div>
                   )}
-
-                  <p className="text-white/70 text-sm leading-relaxed line-clamp-3 font-medium">
-                    {teacher.bio}
-                  </p>
                 </div>
 
                 <div className="border-t border-white/10 pt-5 flex flex-col gap-4 relative z-10">
