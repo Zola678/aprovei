@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-import { Search, MapPin, Users, Star, MessageSquare, Plus, Save, AlertCircle, CheckCircle2, Navigation, Clock, ShieldCheck, Zap, FileText, Check } from 'lucide-react';
+import { Search, MapPin, Users, Star, MessageSquare, Plus, Save, AlertCircle, CheckCircle2, Navigation, ShieldCheck, Zap, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
@@ -42,8 +42,6 @@ export default function TeachersPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Booking Flow State: { [teacherId]: 'idle' | 'requested' | 'accepted' | 'paid' }
-  const [bookingStates, setBookingStates] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -83,18 +81,18 @@ export default function TeachersPage() {
 
   const fetchMyProfile = async (authToken: string) => {
     try {
-      const res = await api.get('/teachers');
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const profile = res.data.find((t: any) => t.user_id === currentUser.id);
-      if (profile) {
-        setMyProfile(profile);
+      const res = await api.get('/auth/me/teacher-profile', {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      if (res.data && Object.keys(res.data).length > 0) {
+        setMyProfile(res.data);
         setProfileData({
-          specialty: profile.specialty,
-          bio: profile.bio || '',
-          price_per_hour: profile.price_per_hour,
-          whatsapp: profile.whatsapp || '',
-          location: profile.location || '',
-          subject_tags: profile.subject_tags || ''
+          specialty: res.data.specialty || '',
+          bio: res.data.bio || '',
+          price_per_hour: res.data.price_per_hour || 0,
+          whatsapp: res.data.whatsapp || '',
+          location: res.data.location || '',
+          subject_tags: res.data.subject_tags || ''
         });
       }
     } catch (err) {
@@ -116,14 +114,11 @@ export default function TeachersPage() {
     setSuccessMsg('');
 
     try {
-      const endpoint = myProfile ? '/teachers' : '/teachers';
-      const method = myProfile ? 'put' : 'post';
-      
-      const res = await api[method](endpoint, profileData, {
+      await api.put('/auth/me', profileData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      setMyProfile(res.data);
+      setMyProfile(profileData);
       setSuccessMsg("Perfil atualizado com sucesso!");
       setShowEditProfile(false);
       fetchTeachers();
@@ -155,22 +150,8 @@ export default function TeachersPage() {
     }, 2000);
   };
 
-  const handleBookingRequest = (teacherId: number) => {
-    // Request phase
-    setBookingStates(prev => ({ ...prev, [teacherId]: 'requested' }));
-
-    // Simulate acceptance after 3 seconds
-    setTimeout(() => {
-      setBookingStates(prev => ({ ...prev, [teacherId]: 'accepted' }));
-    }, 3000);
-  };
-
-  const handlePayment = (teacherId: number) => {
-    // Simulate payment processing
-    setBookingStates(prev => ({ ...prev, [teacherId]: 'paid' }));
-  };
-
   const isTeacher = user && user.role === 'teacher';
+  const isPremium = user && (user.is_premium || user.role === 'admin' || user.role === 'teacher');
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -541,8 +522,6 @@ export default function TeachersPage() {
           </motion.div>
         ) : (
           teachers.map((teacher: any) => {
-            const bState = bookingStates[teacher.id] || 'idle';
-
             return (
               <motion.div 
                 variants={itemVariants}
@@ -560,41 +539,34 @@ export default function TeachersPage() {
                       </h3>
                       <p className="text-sm text-orange font-bold mt-1">{teacher.specialty}</p>
                     </div>
-                    {bState === 'paid' && (
-                      <div className="flex items-center gap-1.5 bg-yellow-400 text-lilac-dark px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                        <span>{Number(teacher.rating).toFixed(1)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/20 text-yellow-300 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span>{Number(teacher.rating).toFixed(1)}</span>
+                    </div>
                   </div>
 
-                  {bState === 'paid' ? (
-                    <>
-                      <div className="flex items-center gap-2 text-white/60 text-sm font-medium">
-                        <MapPin className="w-4 h-4 text-white/40 shrink-0" />
-                        <span>{teacher.location || 'Angola'}</span>
-                      </div>
+                  {/* Location */}
+                  <div className="flex items-center gap-2 text-white/60 text-sm font-medium">
+                    <MapPin className="w-4 h-4 text-white/40 shrink-0" />
+                    <span>{teacher.location || 'Angola'}</span>
+                  </div>
 
-                      {teacher.subject_tags && (
-                        <div className="flex flex-wrap gap-2">
-                          {teacher.subject_tags.split(',').map((tag: string, i: number) => (
-                            <span key={i} className="bg-lilac-dark/60 border border-lilac-light/20 text-white/80 text-xs px-2.5 py-1 rounded-lg font-bold shadow-sm">
-                              {tag.trim()}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      <p className="text-white/70 text-sm leading-relaxed line-clamp-3 font-medium">
-                        {teacher.bio}
-                      </p>
-                    </>
-                  ) : (
-                    <div className="py-2">
-                      <p className="text-white/50 text-sm italic">
-                        As informações detalhadas (contato, biografia, localização exata) serão exibidas apenas após a confirmação e pagamento.
-                      </p>
+                  {/* Subject Tags */}
+                  {teacher.subject_tags && (
+                    <div className="flex flex-wrap gap-2">
+                      {teacher.subject_tags.split(',').map((tag: string, i: number) => (
+                        <span key={i} className="bg-lilac-dark/60 border border-lilac-light/20 text-white/80 text-xs px-2.5 py-1 rounded-lg font-bold shadow-sm">
+                          {tag.trim()}
+                        </span>
+                      ))}
                     </div>
+                  )}
+
+                  {/* Bio */}
+                  {teacher.bio && (
+                    <p className="text-white/70 text-sm leading-relaxed line-clamp-3 font-medium">
+                      {teacher.bio}
+                    </p>
                   )}
                 </div>
 
@@ -603,58 +575,34 @@ export default function TeachersPage() {
                     <div>
                       <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Tarifa Base</p>
                       <p className="text-2xl font-black text-white font-title">
-                        {teacher.price_per_hour.toLocaleString()} <span className="text-sm text-white/55 font-bold">Kz</span>
+                        {teacher.price_per_hour > 0 ? (
+                          <>{teacher.price_per_hour.toLocaleString()} <span className="text-sm text-white/55 font-bold">Kz/h</span></>
+                        ) : (
+                          <span className="text-sm text-white/40 font-semibold">Indisponível</span>
+                        )}
                       </p>
                     </div>
-                    {bState === 'paid' && (
-                      <div className="flex items-center gap-1 text-orange text-xs font-bold bg-orange/10 px-2 py-1 rounded-lg border border-orange/25">
-                        <ShieldCheck className="w-4 h-4" /> Validado
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1 text-orange text-xs font-bold bg-orange/10 px-2 py-1 rounded-lg border border-orange/25">
+                      <ShieldCheck className="w-4 h-4" /> Verificado
+                    </div>
                   </div>
 
-                  {/* Ride-Hailing Booking Flow UI */}
-                  {bState === 'idle' && (
-                    <button
-                      onClick={() => handleBookingRequest(teacher.id)}
-                      className="w-full bg-orange text-lilac-dark px-5 py-3.5 rounded-xl text-sm font-black shadow-sm hover:bg-orange/80 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5 shadow-[0_0_15px_rgba(255,107,0,0.35)]"
-                    >
-                      <Zap className="w-4 h-4" />
-                      <span>Solicitar Tutor Agora</span>
-                    </button>
-                  )}
-
-                  {bState === 'requested' && (
-                    <button
-                      disabled
-                      className="w-full bg-lilac-dark/40 text-white/50 px-5 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-wait border border-lilac-light/20 shadow-inner"
-                    >
-                      <Clock className="w-4 h-4 animate-spin" />
-                      <span>Aguardar Confirmação...</span>
-                    </button>
-                  )}
-
-                  {bState === 'accepted' && (
-                    <button
-                      onClick={() => handlePayment(teacher.id)}
-                      className="w-full bg-green-500 text-lilac-dark px-5 py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-green-400 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5 shadow-md"
-                    >
-                      <span>Pagar {teacher.price_per_hour.toLocaleString()} Kz</span>
-                      <Check className="w-4 h-4" />
-                    </button>
-                  )}
-
-                  {bState === 'paid' && (
-                    <motion.a
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      href={`https://wa.me/${teacher.whatsapp?.replace(/\D/g, '') || ''}?text=Olá%20professor,%20vi%20o%20seu%20perfil%20no%20APROVEI%20e%20gostaria%20de%20saber%20mais%20sobre%20as%20suas%20explicações.`}
+                  {/* Contact Button */}
+                  {teacher.whatsapp ? (
+                    <a
+                      href={`https://wa.me/${teacher.whatsapp.replace(/\D/g, '')}?text=Olá%20professor,%20vi%20o%20seu%20perfil%20no%20APROVEI%20e%20gostaria%20de%20saber%20mais%20sobre%20as%20suas%20explicações.`}
                       target="_blank"
+                      rel="noopener noreferrer"
                       className="w-full bg-[#25D366] text-white px-5 py-3.5 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
                     >
                       <MessageSquare className="w-4 h-4" />
-                      <span>Abrir WhatsApp</span>
-                    </motion.a>
+                      <span>Contactar via WhatsApp</span>
+                    </a>
+                  ) : (
+                    <div className="w-full bg-lilac-dark/40 border border-lilac-light/15 px-5 py-3.5 rounded-xl text-sm font-bold text-white/40 flex items-center justify-center gap-2">
+                      <Zap className="w-4 h-4 text-orange/60" />
+                      <span>Contato disponível para membros <span className="text-orange">Premium</span></span>
+                    </div>
                   )}
                 </div>
               </motion.div>

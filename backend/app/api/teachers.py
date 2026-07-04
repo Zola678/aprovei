@@ -37,6 +37,8 @@ async def list_teachers(
 
     # Verificar se o utilizador atual é premium ou admin/professor
     is_premium = current_user is not None and (current_user.is_premium or current_user.role in ["admin", "teacher"])
+    # Utilizadores logados (mesmo não-premium) vêem informações básicas
+    is_logged_in = current_user is not None
     
     output = []
     for t in teachers:
@@ -54,10 +56,12 @@ async def list_teachers(
                 "role": t.user.role,
                 "is_premium": t.user.is_premium
             },
-            "bio": t.bio if is_premium else "[Apenas para estudantes Premium]",
-            "price_per_hour": int(t.price_per_hour) if is_premium else 0,
+            # Todos os utilizadores logados veem bio, preço e localização
+            "bio": t.bio if is_logged_in else "Faça login para ver a biografia deste tutor.",
+            "price_per_hour": int(t.price_per_hour) if is_logged_in else 0,
+            "location": t.location if is_logged_in else "Faça login para ver a localização.",
+            # WhatsApp apenas para premium ou admin/professor
             "whatsapp": t.whatsapp if is_premium else None,
-            "location": t.location if is_premium else "[Apenas para estudantes Premium]"
         }
         output.append(t_dict)
         
@@ -189,6 +193,7 @@ async def get_teacher(
         raise HTTPException(status_code=404, detail="Professor não encontrado.")
         
     is_premium = current_user is not None and (current_user.is_premium or current_user.role in ["admin", "teacher"])
+    is_logged_in = current_user is not None
     
     return {
         "id": t.id,
@@ -204,10 +209,10 @@ async def get_teacher(
             "role": t.user.role,
             "is_premium": t.user.is_premium
         },
-        "bio": t.bio if is_premium else "[Apenas para estudantes Premium]",
-        "price_per_hour": int(t.price_per_hour) if is_premium else 0,
+        "bio": t.bio if is_logged_in else "Faça login para ver a biografia deste tutor.",
+        "price_per_hour": int(t.price_per_hour) if is_logged_in else 0,
+        "location": t.location if is_logged_in else "Faça login para ver a localização.",
         "whatsapp": t.whatsapp if is_premium else None,
-        "location": t.location if is_premium else "[Apenas para estudantes Premium]"
     }
 
 @router.post("/apply", status_code=status.HTTP_201_CREATED)
