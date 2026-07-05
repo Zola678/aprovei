@@ -141,6 +141,7 @@ async def on_startup():
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS years_of_experience INTEGER"))
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS what_intends TEXT"))
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS resume_pdf_url VARCHAR(255)"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS xp INTEGER DEFAULT 0"))
                     # Coluna premium_until em falta na BD
                     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMP"))
 

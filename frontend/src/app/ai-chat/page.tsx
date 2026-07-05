@@ -516,28 +516,30 @@ export default function AIChatPage() {
                   </div>
 
                   {/* Search/Challenge key input */}
-                  <div className="px-4 py-3 bg-[#130a18] border-b border-lilac-light/10">
-                    <div className="flex gap-2 bg-[#1c1422] border border-lilac-light/20 rounded-full px-4 py-2 items-center">
-                      <BookOpen className="w-4 h-4 text-white/40 shrink-0" />
-                      <input
-                        type="text"
-                        value={examKeyInput}
-                        onChange={(e) => setExamKeyInput(e.target.value)}
-                        placeholder="Chave do Simulado... (Ex: UAN-MAT-2023)"
-                        className="flex-1 bg-transparent text-xs text-white placeholder-white/30 focus:outline-none font-bold uppercase"
-                      />
-                      <button
-                        onClick={() => handleStartExamChallenge(examKeyInput)}
-                        disabled={!examKeyInput.trim() || startingChallenge}
-                        className="text-xs font-black text-orange hover:text-orange/80 disabled:opacity-30"
-                      >
-                        {startingChallenge ? '...' : 'Iniciar'}
-                      </button>
+                  {user?.role !== 'admin' && (
+                    <div className="px-4 py-3 bg-[#130a18] border-b border-lilac-light/10">
+                      <div className="flex gap-2 bg-[#1c1422] border border-lilac-light/20 rounded-full px-4 py-2 items-center">
+                        <BookOpen className="w-4 h-4 text-white/40 shrink-0" />
+                        <input
+                          type="text"
+                          value={examKeyInput}
+                          onChange={(e) => setExamKeyInput(e.target.value)}
+                          placeholder="Chave do Simulado... (Ex: UAN-MAT-2023)"
+                          className="flex-1 bg-transparent text-xs text-white placeholder-white/30 focus:outline-none font-bold uppercase"
+                        />
+                        <button
+                          onClick={() => handleStartExamChallenge(examKeyInput)}
+                          disabled={!examKeyInput.trim() || startingChallenge}
+                          className="text-xs font-black text-orange hover:text-orange/80 disabled:opacity-30"
+                        >
+                          {startingChallenge ? '...' : 'Iniciar'}
+                        </button>
+                      </div>
+                      {challengeError && (
+                        <p className="text-[10px] text-rose-400 mt-1.5 px-2 font-semibold text-left">{challengeError}</p>
+                      )}
                     </div>
-                    {challengeError && (
-                      <p className="text-[10px] text-rose-400 mt-1.5 px-2 font-semibold text-left">{challengeError}</p>
-                    )}
-                  </div>
+                  )}
 
                   {/* Scrollable list of active tutor chat sessions */}
                   <div className="flex-grow overflow-y-auto divide-y divide-white/5 bg-[#0a050d]">
@@ -827,28 +829,30 @@ export default function AIChatPage() {
                     </button>
                   </div>
 
-                  <div className="mb-4 p-4 rounded-2xl bg-lilac-dark/45 border border-lilac-light/10 flex-shrink-0 text-left">
-                    <span className="text-[10px] font-bold text-orange uppercase tracking-wider block mb-2">Desafio por Chave de Prova</span>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={examKeyInput}
-                        onChange={(e) => setExamKeyInput(e.target.value)}
-                        placeholder="Ex: UAN-MAT-2023"
-                        className="flex-1 bg-lilac-dark/60 border border-lilac-light/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-orange font-bold uppercase"
-                      />
-                      <button
-                        onClick={() => handleStartExamChallenge(examKeyInput)}
-                        disabled={!examKeyInput.trim() || startingChallenge}
-                        className="px-3 py-2 bg-orange text-lilac-dark font-black text-xs rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-50"
-                      >
-                        {startingChallenge ? '...' : 'Iniciar'}
-                      </button>
+                  {user?.role !== 'admin' && (
+                    <div className="mb-4 p-4 rounded-2xl bg-lilac-dark/45 border border-lilac-light/10 flex-shrink-0 text-left">
+                      <span className="text-[10px] font-bold text-orange uppercase tracking-wider block mb-2">Desafio por Chave de Prova</span>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={examKeyInput}
+                          onChange={(e) => setExamKeyInput(e.target.value)}
+                          placeholder="Ex: UAN-MAT-2023"
+                          className="flex-1 bg-lilac-dark/60 border border-lilac-light/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-orange font-bold uppercase"
+                        />
+                        <button
+                          onClick={() => handleStartExamChallenge(examKeyInput)}
+                          disabled={!examKeyInput.trim() || startingChallenge}
+                          className="px-3 py-2 bg-orange text-lilac-dark font-black text-xs rounded-xl hover:bg-orange/80 transition-colors disabled:opacity-50"
+                        >
+                          {startingChallenge ? '...' : 'Iniciar'}
+                        </button>
+                      </div>
+                      {challengeError && (
+                        <p className="text-[10px] text-rose-400 mt-2 font-bold leading-tight">{challengeError}</p>
+                      )}
                     </div>
-                    {challengeError && (
-                      <p className="text-[10px] text-rose-400 mt-2 font-bold leading-tight">{challengeError}</p>
-                    )}
-                  </div>
+                  )}
                   
                   <div className="flex-grow overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                     {loadingSessions ? (

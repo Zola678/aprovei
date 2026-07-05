@@ -14,6 +14,7 @@ class UserBase(BaseModel):
     years_of_experience: int | None = None
     what_intends: str | None = None
     resume_pdf_url: str | None = None
+    xp: int = 0
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=72)
@@ -39,3 +40,4 @@ class UserUpdate(BaseModel):
     whatsapp: str | None = None
     location: str | None = None
     subject_tags: str | None = None
+    xp: int | None = None

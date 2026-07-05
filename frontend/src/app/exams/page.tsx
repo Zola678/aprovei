@@ -688,7 +688,7 @@ export default function ExamsPage() {
                 className="card-lilac-glass border-lilac-light/30 bg-lilac-base/20 shadow-sm hover:border-orange/40 transition-all duration-300 flex flex-col justify-between space-y-8 relative overflow-hidden group cursor-pointer p-8"
               >
                 <div className="absolute -right-10 -top-10 w-32 h-32 bg-orange/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-                
+                {activeModule !== 'high_school' && item.solved && (
                   <div className="absolute top-0 right-0 bg-green-500 text-lilac-dark text-xs px-4 py-1.5 font-bold rounded-bl-2xl flex items-center gap-1.5 shadow-md z-20">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Resolvida</span>
@@ -780,13 +780,15 @@ export default function ExamsPage() {
                   </div>
 
                   {/* AI Challenge shortcut button */}
-                  <button
-                    onClick={() => router.push(`/ai-chat?challenge=${examKey}`)}
-                    className="w-full bg-orange text-lilac-dark px-4 py-3.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 hover:bg-orange/80 shadow-md transition-all active:scale-[0.98]"
-                  >
-                    <Zap className="w-4 h-4 text-lilac-dark fill-current" />
-                    <span>Desafiar IA nesta Prova 🎯</span>
-                  </button>
+                  {user?.role !== 'admin' && (
+                    <button
+                      onClick={() => router.push(`/ai-chat?challenge=${examKey}`)}
+                      className="w-full bg-orange text-lilac-dark px-4 py-3.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 hover:bg-orange/80 shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <Zap className="w-4 h-4 text-lilac-dark fill-current" />
+                      <span>Desafiar IA nesta Prova 🎯</span>
+                    </button>
+                  )}
 
                   {/* Resolução form for teachers on University Exams */}
                   {activeModule !== 'high_school' && isTeacherOrAdmin && !item.solved && (

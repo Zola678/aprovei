@@ -140,6 +140,8 @@ async def generate_ai_response(
                 system_prompt += (
                     "Deves propor uma pergunta de cada vez e aguardar pela resposta do estudante. "
                     "Quando o estudante responder, avalia a resposta dele de forma clara com base na chave da prova, explica a resolução de forma pedagógica (mostrando a fórmula e os passos se ele errar), e depois apresenta o próximo desafio. "
+                    "Se o estudante ACERTAR a resposta, DEVES OBRIGATORIAMENTE incluir a tag oculta '[ACERTOU]' em algum lugar da tua resposta para que o sistema lhe dê pontos de experiência. "
+                    "Se o estudante ERRAR a resposta, DEVES OBRIGATORIAMENTE incluir a tag oculta '[ERROU]' em algum lugar da tua resposta para que o sistema lhe retire pontos de experiência. "
                     "Mantenha um tom motivador e responda em português de Angola."
                 )
             else:
@@ -629,6 +631,33 @@ async def send_message(
         file_url=msg_data.file_url
     )
     
+    # 4.5 Processar Gamificação (XP)
+    if "[ACERTOU]" in ai_response_content:
+        # Remover a tag para não aparecer cruamente ao utilizador
+        ai_response_content = ai_response_content.replace("[ACERTOU]", "").strip()
+        
+        # Adicionar XP ao utilizador
+        if current_user.xp is None:
+            current_user.xp = 0
+        current_user.xp += 50
+        
+        # Adicionar feedback visual à mensagem
+        ai_response_content += "\n\n🎉 **+50 XP** (Resposta Correta!)"
+
+    if "[ERROU]" in ai_response_content:
+        # Remover a tag
+        ai_response_content = ai_response_content.replace("[ERROU]", "").strip()
+        
+        # Remover XP ao utilizador (garantir que não fica negativo)
+        if current_user.xp is None:
+            current_user.xp = 0
+            
+        xp_to_remove = 15
+        current_user.xp = max(0, current_user.xp - xp_to_remove)
+        
+        # Adicionar feedback visual à mensagem
+        ai_response_content += f"\n\n📉 **-{xp_to_remove} XP** (Resposta Incorreta!)"
+    
     # 5. Guardar e retornar a resposta da IA
     ai_msg = AIChatMessage(session_id=session.id, sender="ai", content=ai_response_content)
     db.add(ai_msg)
@@ -666,6 +695,9 @@ async def create_exam_challenge_session(
     current_user: User = Depends(get_current_user)
 ):
     """Cria uma nova sessão de chat focada num desafio de prova (exam key)"""
+    if current_user.role == "admin":
+        raise HTTPException(status_code=403, detail="Administradores não podem fazer simulações.")
+    
     exam_key = challenge_data.exam_key
     
     # 1. Procurar a prova correspondente à chave

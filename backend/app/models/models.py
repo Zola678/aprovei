@@ -20,6 +20,7 @@ class User(Base):
     years_of_experience = Column(Integer, nullable=True)
     what_intends = Column(String, nullable=True)
     resume_pdf_url = Column(String, nullable=True)
+    xp = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships

@@ -316,6 +316,8 @@ async def update_me(
         current_user.years_of_experience = user_update.years_of_experience
     if user_update.what_intends is not None:
         current_user.what_intends = user_update.what_intends
+    if user_update.xp is not None:
+        current_user.xp = user_update.xp
 
     if user_update.password is not None and user_update.password.strip():
         current_user.password_hash = get_password_hash(user_update.password)
@@ -466,3 +468,170 @@ async def list_active_teachers(
             } if p else None
         })
     return output
+
+@router.get("/admin/users")
+async def list_all_users(
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+        
+    query = select(UserModel).order_by(UserModel.full_name)
+    result = await db.execute(query)
+    users = result.scalars().all()
+    
+    return [{
+        "id": u.id,
+        "email": u.email,
+        "full_name": u.full_name,
+        "phone": u.phone,
+        "role": u.role,
+        "is_premium": u.is_premium,
+        "status": u.status,
+        "xp": u.xp
+    } for u in users]
+
+@router.post("/admin/users", response_model=User, status_code=status.HTTP_201_CREATED)
+async def admin_create_user(
+    email: EmailStr = Form(...),
+    password: str = Form(...),
+    full_name: str = Form(...),
+    role: str = Form("student"),
+    phone: str = Form(None),
+    is_premium: bool = Form(False),
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+        
+    stmt = select(UserModel).where(UserModel.email == email)
+    result = await db.execute(stmt)
+    if result.scalars().first():
+        raise HTTPException(status_code=400, detail="E-mail já registrado.")
+        
+    hashed_password = get_password_hash(password)
+    new_user = UserModel(
+        email=email,
+        password_hash=hashed_password,
+        role=role,
+        full_name=full_name,
+        phone=phone,
+        is_premium=is_premium,
+        status="active"
+    )
+    
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    return new_user
+
+@router.put("/admin/users/{user_id}")
+async def admin_update_user(
+    user_id: int,
+    email: EmailStr = Form(None),
+    full_name: str = Form(None),
+    phone: str = Form(None),
+    password: str = Form(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+        
+    stmt = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
+        
+    if email:
+        # Check if email is used by someone else
+        email_stmt = select(UserModel).where(UserModel.email == email, UserModel.id != user_id)
+        email_res = await db.execute(email_stmt)
+        if email_res.scalars().first():
+            raise HTTPException(status_code=400, detail="E-mail já está em uso.")
+        user.email = email
+        
+    if full_name is not None:
+        user.full_name = full_name
+    if phone is not None:
+        user.phone = phone
+    if password:
+        user.password_hash = get_password_hash(password)
+        
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    
+    return {"message": "Utilizador atualizado com sucesso"}
+
+
+@router.patch("/admin/users/{user_id}/role")
+async def update_user_role(
+    user_id: int,
+    role: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+        
+    query = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
+        
+    user.role = role
+    if role == "teacher":
+        user.status = "active"
+        
+    db.add(user)
+    await db.commit()
+    return {"message": "Cargo atualizado com sucesso"}
+
+@router.patch("/admin/users/{user_id}/premium")
+async def toggle_user_premium(
+    user_id: int,
+    is_premium: bool = Form(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+        
+    query = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
+        
+    user.is_premium = is_premium
+    db.add(user)
+    await db.commit()
+    return {"message": f"Estatuto premium atualizado para {is_premium}"}
+
+@router.delete("/admin/users/{user_id}")
+async def delete_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+        
+    query = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
+        
+    await db.delete(user)
+    await db.commit()
+    return {"message": "Utilizador removido com sucesso"}
