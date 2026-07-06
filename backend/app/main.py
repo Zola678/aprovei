@@ -57,6 +57,43 @@ import os
 
 # Inclusão das rotas
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+
+# Endpoint de emergência para criar/promover admin
+@app.post("/api/v1/setup/promote-admin")
+async def promote_to_admin(email: str, secret: str):
+    """Promove um utilizador a admin. Apenas para uso inicial de configuração."""
+    from app.core.database import AsyncSessionLocal
+    from sqlalchemy.future import select
+    from app.models.models import User as UserModel
+    from app.core.security import get_password_hash
+    import os
+
+    SETUP_SECRET = os.getenv("SETUP_SECRET", "aprovei-setup-2026")
+    if secret != SETUP_SECRET:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Segredo inválido.")
+
+    async with AsyncSessionLocal() as session:
+        stmt = select(UserModel).where(UserModel.email == email)
+        result = await session.execute(stmt)
+        user = result.scalars().first()
+        if not user:
+            # Criar o utilizador admin se não existir
+            user = UserModel(
+                email=email,
+                password_hash=get_password_hash("AdminAprovei2026!"),
+                role="admin",
+                full_name="Administrador",
+                status="active"
+            )
+            session.add(user)
+        else:
+            user.role = "admin"
+            user.status = "active"
+        await session.commit()
+        return {"message": f"Utilizador {email} promovido a admin com sucesso!", "role": "admin"}
+
+
 app.include_router(exams.router, prefix="/api/v1/exams", tags=["exams"])
 app.include_router(teachers.router, prefix="/api/v1/teachers", tags=["teachers"])
 app.include_router(forum.router, prefix="/api/v1/forum", tags=["forum"])
