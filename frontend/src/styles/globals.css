@@ -178,3 +178,12 @@ body::after {
 /* Utility for slow pulsing glow used elsewhere */
 @keyframes pulse-slow { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.04); opacity: 0.7; } 100% { transform: scale(1); opacity: 0.9; } }
 .animate-pulse-slow { animation: pulse-slow 6s infinite ease-in-out; }
+
+/* Hide scrollbar for mobile navigation */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

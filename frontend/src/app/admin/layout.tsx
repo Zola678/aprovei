@@ -172,23 +172,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 w-full bg-[#130a18] border-t border-white/10 p-2 flex justify-around z-40">
-        {menuItems.slice(0, 4).map((item) => {
-          const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={`p-3 rounded-xl flex flex-col items-center gap-1 ${
-                isActive ? 'text-orange' : 'text-white/50'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-bold">{item.name.split(' ')[0]}</span>
-            </Link>
-          );
-        })}
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[#130a18] border-t border-white/10 p-2 flex overflow-x-auto hide-scrollbar z-40">
+        <div className="flex w-max mx-auto gap-1 px-2 pb-2">
+          {menuItems.map((item) => {
+            const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+            const Icon = item.icon;
+            
+            // Tratamento especial para "Visão Geral" (Overview)
+            if (item.path === '/admin' && pathname !== '/admin') return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`p-3 rounded-xl flex flex-col items-center gap-1 min-w-[72px] shrink-0 text-white/50`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-bold">{item.name.split(' ')[0]}</span>
+              </Link>
+            );
+
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`p-3 rounded-xl flex flex-col items-center gap-1 min-w-[72px] shrink-0 transition-colors ${
+                  isActive ? 'text-orange bg-white/5' : 'text-white/50 hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-bold">{item.name.split(' ')[0]}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );
