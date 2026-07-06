@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth';
 import { 
   LayoutDashboard, Users, BookOpen, MessageSquare, 
   Settings, LogOut, Type, Sun
@@ -10,22 +9,35 @@ import {
 import { motion } from 'framer-motion';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
   const [contrast, setContrast] = useState<'normal' | 'high'>('normal');
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/auth/login');
-      } else if (user.role !== 'admin') {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      if (parsedUser.role !== 'admin') {
         router.push('/dashboard');
+      } else {
+        setLoading(false);
       }
+    } else {
+      router.push('/auth/login');
     }
-  }, [user, loading, router]);
+  }, [router]);
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/auth/login');
+  };
 
   useEffect(() => {
     if (fontSize === 'large') {

@@ -13,6 +13,7 @@
     "axios": "^1.7.2",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "framer-motion": "^12.40.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.395.0",
