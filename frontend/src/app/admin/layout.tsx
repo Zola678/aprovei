@@ -4,9 +4,18 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
   LayoutDashboard, Users, BookOpen, MessageSquare, 
-  Settings, LogOut, Type, Sun
+  LogOut, Type, Sun, Bot, Clock, Menu, X, ChevronRight
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const menuItems = [
+  { name: 'Visão Geral', shortName: 'Início', path: '/admin', icon: LayoutDashboard },
+  { name: 'Utilizadores', shortName: 'Users', path: '/admin/users', icon: Users },
+  { name: 'Pendentes', shortName: 'Pending', path: '/admin/pendings', icon: Clock },
+  { name: 'Provas', shortName: 'Provas', path: '/admin/exams', icon: BookOpen },
+  { name: 'Fórum', shortName: 'Fórum', path: '/admin/forum', icon: MessageSquare },
+  { name: 'AIA', shortName: 'AIA', path: '/admin/ai', icon: Bot },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -14,7 +23,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
   const [contrast, setContrast] = useState<'normal' | 'high'>('normal');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,19 +42,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [router]);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/auth/login');
-  };
+  useEffect(() => {
+    // Close mobile menu on route change
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
-    if (fontSize === 'large') {
-      document.documentElement.classList.add('text-lg');
-    } else {
-      document.documentElement.classList.remove('text-lg');
-    }
-
+    document.documentElement.style.fontSize = fontSize === 'large' ? '18px' : '16px';
     if (contrast === 'high') {
       document.documentElement.classList.add('contrast-150');
     } else {
@@ -54,143 +56,299 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [fontSize, contrast]);
 
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/auth/login');
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/admin') return pathname === '/admin';
+    return pathname === path || pathname.startsWith(path + '/');
+  };
+
+  const currentPage = menuItems.find(item => isActive(item.path))?.name || 'Administração';
+
   if (loading || !user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-[#0a050d] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-orange/20 border-t-orange rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-lilac-dark flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-orange/30 border-t-orange rounded-full animate-spin" />
+          <p className="text-white/60 text-sm font-medium">A carregar painel...</p>
+        </div>
       </div>
     );
   }
 
-  const menuItems = [
-    { name: 'Visão Geral', path: '/admin', icon: LayoutDashboard },
-    { name: 'Utilizadores', path: '/admin/users', icon: Users },
-    { name: 'Pendentes', path: '/admin/pendings', icon: Users },
-    { name: 'Provas', path: '/admin/exams', icon: BookOpen },
-    { name: 'Fórum', path: '/admin/forum', icon: MessageSquare },
-    { name: 'AIA (Inteligência)', path: '/admin/ai', icon: LayoutDashboard },
-  ];
-
   return (
-    <div className="min-h-screen flex bg-[#0a050d] text-white">
-      {/* Overlay mobile */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-sm"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`w-64 bg-[#130a18] border-r border-white/10 flex flex-col h-screen fixed md:sticky top-0 z-50 transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        <div className="p-6 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-orange text-lilac-dark rounded-xl flex items-center justify-center font-black text-xl">
+    <div className="min-h-screen bg-lilac-dark text-white flex">
+      
+      {/* ─── DESKTOP SIDEBAR ─── */}
+      <aside className="hidden md:flex w-64 lg:w-72 bg-lilac-dark border-r border-lilac-light/20 flex-col h-screen sticky top-0 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
+        
+        {/* Logo */}
+        <div className="p-6 border-b border-lilac-light/20">
+          <Link href="/admin" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-orange rounded-xl flex items-center justify-center font-black text-xl text-lilac-dark shadow-orange-glow shrink-0">
               A
             </div>
             <div>
-              <h1 className="font-title font-black text-xl leading-tight">APROVEI</h1>
+              <h1 className="font-title font-black text-lg leading-tight text-white">APROVEI</h1>
               <p className="text-[10px] text-orange uppercase font-bold tracking-widest">Admin Pro</p>
             </div>
           </Link>
-          <button className="md:hidden text-white/50" onClick={() => setIsMobileMenuOpen(false)}>
-            <LogOut className="w-5 h-5 rotate-180" />
-          </button>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest px-3 mb-3">Menu Principal</p>
           {menuItems.map((item) => {
-            const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+            const active = isActive(item.path);
             const Icon = item.icon;
-            // Strict match for Overview
-            if (item.path === '/admin' && pathname !== '/admin') return (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-white/60 hover:bg-white/5 hover:text-white`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </Link>
-            );
-
             return (
               <Link
                 key={item.path}
                 href={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                  isActive 
-                    ? 'bg-orange text-lilac-dark shadow-md' 
-                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl font-semibold text-sm transition-all duration-200 group relative ${
+                  active
+                    ? 'bg-orange text-lilac-dark shadow-orange-glow'
+                    : 'text-white/60 hover:bg-lilac-light/15 hover:text-white'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                {active && (
+                  <motion.div
+                    layoutId="sidebar-active"
+                    className="absolute inset-0 bg-orange rounded-xl"
+                    style={{ zIndex: -1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <Icon className="w-5 h-5 shrink-0" />
                 <span>{item.name}</span>
+                {active && <ChevronRight className="w-4 h-4 ml-auto" />}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/10">
+        {/* Accessibility + User + Logout */}
+        <div className="p-4 border-t border-lilac-light/20 space-y-3">
+          {/* Accessibility toggles */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFontSize(fontSize === 'normal' ? 'large' : 'normal')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                fontSize === 'large'
+                  ? 'bg-orange text-lilac-dark'
+                  : 'bg-lilac-light/10 text-white/50 hover:text-white'
+              }`}
+              title="Tamanho da Fonte"
+            >
+              <Type className="w-3.5 h-3.5" />
+              <span>Fonte</span>
+            </button>
+            <button
+              onClick={() => setContrast(contrast === 'normal' ? 'high' : 'normal')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                contrast === 'high'
+                  ? 'bg-orange text-lilac-dark'
+                  : 'bg-lilac-light/10 text-white/50 hover:text-white'
+              }`}
+              title="Alto Contraste"
+            >
+              <Sun className="w-3.5 h-3.5" />
+              <span>Contraste</span>
+            </button>
+          </div>
+
+          {/* User info */}
+          <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-lilac-light/10">
+            <div className="w-8 h-8 rounded-full bg-orange/20 border border-orange/40 flex items-center justify-center shrink-0">
+              <span className="text-sm font-black text-orange">{user.full_name?.charAt(0)?.toUpperCase()}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold leading-tight truncate">{user.full_name}</p>
+              <p className="text-[10px] text-orange uppercase font-bold">Admin</p>
+            </div>
+          </div>
+
+          {/* Logout */}
           <button
-            onClick={() => logout()}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-400 hover:bg-red-400/10 transition-all w-full text-left"
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-bold text-sm text-red-400 hover:bg-red-400/10 border border-red-400/20 hover:border-red-400/40 transition-all"
           >
-            <LogOut className="w-5 h-5" />
-            <span>Sair</span>
+            <LogOut className="w-4 h-4" />
+            <span>Terminar Sessão</span>
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
-        <header className="h-16 border-b border-white/10 bg-[#130a18]/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <button 
-              className="md:hidden text-white/70 hover:text-white"
+      {/* ─── MAIN CONTENT AREA ─── */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+        
+        {/* ─── TOP HEADER (Mobile + Desktop) ─── */}
+        <header className="h-14 md:h-16 bg-lilac-dark/95 border-b border-lilac-light/20 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 shrink-0">
+          {/* Left: Hamburger (mobile) + Title */}
+          <div className="flex items-center gap-3">
+            <button
+              className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-lilac-light/10 text-white/70 hover:text-white transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Abrir menu"
             >
-              <LayoutDashboard className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
-            <div className="hidden md:block text-sm text-white/50 font-medium">
-               Administração do Sistema
+            <div>
+              <h2 className="text-sm font-black text-white leading-tight">{currentPage}</h2>
+              <p className="text-[10px] text-white/40 hidden md:block">Painel de Administração</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 bg-black/40 rounded-xl p-1 border border-white/5">
-              <button 
+
+          {/* Right: Accessibility (desktop) + Avatar */}
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="hidden md:flex items-center gap-1 bg-lilac-light/10 rounded-xl p-1">
+              <button
                 onClick={() => setFontSize(fontSize === 'normal' ? 'large' : 'normal')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold ${fontSize === 'large' ? 'bg-orange text-white shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-                title="Aumentar Fonte"
+                className={`p-2 rounded-lg transition-all ${fontSize === 'large' ? 'bg-orange text-lilac-dark' : 'text-white/50 hover:text-white'}`}
+                title="Tamanho da Fonte"
               >
                 <Type className="w-4 h-4" />
-                <span className="hidden xl:inline">{fontSize === 'large' ? 'Fonte: Maior' : 'Fonte: Normal'}</span>
               </button>
-              <button 
+              <button
                 onClick={() => setContrast(contrast === 'normal' ? 'high' : 'normal')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold ${contrast === 'high' ? 'bg-orange text-white shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                className={`p-2 rounded-lg transition-all ${contrast === 'high' ? 'bg-orange text-lilac-dark' : 'text-white/50 hover:text-white'}`}
                 title="Alto Contraste"
               >
                 <Sun className="w-4 h-4" />
-                <span className="hidden xl:inline">{contrast === 'high' ? 'Contraste: Alto' : 'Contraste: Normal'}</span>
               </button>
             </div>
             
-            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-              <div className="w-8 h-8 rounded-full bg-lilac-dark border border-white/20 flex items-center justify-center">
-                <span className="text-sm font-bold text-orange">{user.full_name?.charAt(0)}</span>
-              </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-bold leading-tight">{user.full_name}</p>
-                <p className="text-[10px] text-white/50 uppercase">{user.role}</p>
-              </div>
+            <div className="w-8 h-8 rounded-full bg-orange/20 border-2 border-orange/50 flex items-center justify-center">
+              <span className="text-xs font-black text-orange">{user.full_name?.charAt(0)?.toUpperCase()}</span>
             </div>
           </div>
         </header>
 
-        <div className="p-6 md:p-10 flex-1">
+        {/* ─── PAGE CONTENT ─── */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8 pb-24 md:pb-8 overflow-x-hidden">
           {children}
+        </main>
+      </div>
+
+      {/* ─── MOBILE DRAWER OVERLAY ─── */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              key="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/70 z-40 md:hidden backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div
+              key="drawer"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+              className="fixed top-0 left-0 h-full w-72 bg-lilac-dark border-r border-lilac-light/20 z-50 flex flex-col md:hidden shadow-2xl"
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between p-5 border-b border-lilac-light/20">
+                <Link href="/admin" className="flex items-center gap-3" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="w-9 h-9 bg-orange rounded-xl flex items-center justify-center font-black text-lg text-lilac-dark shadow-orange-glow">
+                    A
+                  </div>
+                  <div>
+                    <h1 className="font-title font-black text-base text-white">APROVEI</h1>
+                    <p className="text-[9px] text-orange uppercase font-bold tracking-widest">Admin Pro</p>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-lilac-light/10 text-white/60"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Drawer Nav */}
+              <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                {menuItems.map((item) => {
+                  const active = isActive(item.path);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-3.5 rounded-xl font-semibold text-sm transition-all ${
+                        active
+                          ? 'bg-orange text-lilac-dark shadow-orange-glow'
+                          : 'text-white/70 hover:bg-lilac-light/15 hover:text-white'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 shrink-0" />
+                      <span>{item.name}</span>
+                      {active && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Drawer Footer */}
+              <div className="p-4 border-t border-lilac-light/20 space-y-3">
+                <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-lilac-light/10">
+                  <div className="w-9 h-9 rounded-full bg-orange/20 border border-orange/40 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-black text-orange">{user.full_name?.charAt(0)?.toUpperCase()}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{user.full_name}</p>
+                    <p className="text-[10px] text-orange uppercase font-bold">Admin</p>
+                  </div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-bold text-sm text-red-400 hover:bg-red-400/10 border border-red-400/20 transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Terminar Sessão</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ─── MOBILE BOTTOM TAB BAR (WhatsApp style) ─── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-lilac-dark border-t border-lilac-light/20 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
+        <div className="flex items-center justify-around px-2 py-2 safe-area-bottom">
+          {menuItems.map((item) => {
+            const active = isActive(item.path);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className="flex flex-col items-center gap-1 px-2 py-1.5 relative min-w-0"
+              >
+                <div className={`relative w-10 h-10 flex items-center justify-center rounded-2xl transition-all duration-200 ${
+                  active ? 'bg-orange shadow-orange-glow scale-110' : 'hover:bg-lilac-light/10'
+                }`}>
+                  <Icon className={`w-5 h-5 transition-colors ${active ? 'text-lilac-dark' : 'text-white/50'}`} />
+                </div>
+                <span className={`text-[9px] font-bold truncate max-w-[48px] text-center leading-tight transition-colors ${
+                  active ? 'text-orange' : 'text-white/40'
+                }`}>
+                  {item.shortName}
+                </span>
+              </Link>
+            );
+          })}
         </div>
-      </main>
+      </nav>
     </div>
   );
 }

@@ -51,14 +51,14 @@ export default function AdminOverview() {
   }
 
   const statCards = [
-    { title: 'Estudantes', value: stats?.total_students || 0, icon: GraduationCap, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { title: 'Explicadores Ativos', value: stats?.total_teachers_active || 0, icon: Briefcase, color: 'text-green-400', bg: 'bg-green-400/10' },
-    { title: 'Explicadores Pendentes', value: stats?.total_teachers_pending || 0, icon: Users, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { title: 'Provas Carregadas', value: stats?.total_exams || 0, icon: FileText, color: 'text-purple-400', bg: 'bg-purple-400/10' },
-    { title: 'Tópicos no Fórum', value: stats?.total_posts || 0, icon: MessageSquare, color: 'text-pink-400', bg: 'bg-pink-400/10' },
+    { title: 'Estudantes', value: stats?.total_students || 0, icon: GraduationCap, color: 'text-orange', bg: 'bg-orange/10', border: 'border-orange/20' },
+    { title: 'Explicadores Ativos', value: stats?.total_teachers_active || 0, icon: Briefcase, color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' },
+    { title: 'Pendentes', value: stats?.total_teachers_pending || 0, icon: Users, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+    { title: 'Provas', value: stats?.total_exams || 0, icon: FileText, color: 'text-lilac-light', bg: 'bg-lilac-light/10', border: 'border-lilac-light/20' },
+    { title: 'Fórum', value: stats?.total_posts || 0, icon: MessageSquare, color: 'text-pink-400', bg: 'bg-pink-400/10', border: 'border-pink-400/20' },
   ];
 
-  const COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6'];
+  const COLORS = ['#FF6B00', '#7B4FA6', '#10b981', '#5B2E82'];
 
   return (
     <div className="space-y-8 font-sans">
@@ -68,7 +68,7 @@ export default function AdminOverview() {
           <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 font-title tracking-tight">Painel Geral de Gestão</h1>
           <p className="text-white/60 mt-1 text-sm font-medium">Monitorização e estimativas da plataforma em tempo real.</p>
         </div>
-        <div className="bg-[#130a18] border border-white/10 px-4 py-3 rounded-2xl flex items-center gap-4 shadow-xl z-10">
+        <div className="bg-lilac/30 border border-lilac-light/20 px-4 py-3 rounded-2xl flex items-center gap-4 shadow-xl z-10">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Sistema Ativo</span>
@@ -86,30 +86,29 @@ export default function AdminOverview() {
         {statCards.map((card, idx) => {
           const Icon = card.icon;
           return (
-            <motion.div 
+          <motion.div 
               key={idx}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-[#130a18] border border-white/5 p-5 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden group hover:border-white/10 transition-colors"
+              transition={{ delay: idx * 0.08 }}
+              className={`bg-lilac/20 border ${card.border} p-4 md:p-5 rounded-2xl flex flex-col justify-between h-28 md:h-32 relative overflow-hidden group hover:bg-lilac/30 transition-all duration-200`}
             >
               <div className="flex items-center justify-between z-10">
-                <span className="text-white/60 text-[10px] sm:text-xs font-bold uppercase tracking-widest pr-2">{card.title}</span>
-                <div className={`p-2.5 rounded-xl ${card.bg} border border-white/5`}>
+                <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest pr-2 leading-tight">{card.title}</span>
+                <div className={`p-2 rounded-xl ${card.bg} border ${card.border} shrink-0`}>
                   <Icon className={`w-4 h-4 ${card.color}`} />
                 </div>
               </div>
-              <div className="z-10 flex items-end justify-between mt-2">
-                <p className="text-4xl font-black text-white font-title tracking-tight">{card.value}</p>
+              <div className="z-10 flex items-end justify-between mt-1">
+                <p className="text-3xl md:text-4xl font-black text-white font-title tracking-tight">{card.value}</p>
                 <div className="flex flex-col items-end">
-                   <div className="flex items-center text-green-400 text-xs font-bold transition-opacity">
+                   <div className="flex items-center text-green-400 text-xs font-bold">
                      <ArrowUpRight className="w-3 h-3" /> +{((idx + 1) * 3.4 + 5).toFixed(1)}%
                    </div>
-                   <span className="text-[9px] text-white/30 uppercase mt-1">vs Mês Ant.</span>
+                   <span className="text-[9px] text-white/30 uppercase mt-0.5">vs Mês Ant.</span>
                 </div>
               </div>
-              <div className={`absolute -right-4 -bottom-4 w-32 h-32 rounded-full blur-3xl opacity-20 ${card.bg.replace('/10', '')} group-hover:opacity-50 transition-all duration-500`}></div>
-              <div className="absolute inset-0 border border-white/0 group-hover:border-white/10 rounded-2xl transition-all duration-500"></div>
+              <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${card.bg} group-hover:opacity-40 transition-all duration-500`}></div>
             </motion.div>
           );
         })}
@@ -117,19 +116,19 @@ export default function AdminOverview() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-          className="bg-gradient-to-br from-orange/20 to-pink-500/10 border border-orange/30 p-5 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden group shadow-[0_0_20px_rgba(255,107,0,0.1)] col-span-2 sm:col-span-1"
+          transition={{ delay: 0.45 }}
+          className="bg-gradient-to-br from-orange/20 to-lilac/30 border border-orange/30 p-4 md:p-5 rounded-2xl flex flex-col justify-between h-28 md:h-32 relative overflow-hidden group shadow-orange-glow col-span-2 sm:col-span-1"
         >
           <div className="flex items-center justify-between z-10">
-             <span className="text-orange/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Projeção Q3</span>
-             <div className="p-2.5 rounded-xl bg-orange/20 border border-orange/30">
+             <span className="text-orange/80 text-[10px] font-bold uppercase tracking-widest">Projeção Q3</span>
+             <div className="p-2 rounded-xl bg-orange/20 border border-orange/30">
                <Activity className="w-4 h-4 text-orange" />
              </div>
           </div>
-          <div className="z-10 flex items-end justify-between mt-2">
-             <p className="text-3xl font-black text-white font-title tracking-tight">{(stats?.total_students || 1000) * 1.4}</p>
+          <div className="z-10 flex items-end justify-between mt-1">
+             <p className="text-3xl font-black text-white font-title tracking-tight">{Math.round((stats?.total_students || 1000) * 1.4)}</p>
              <div className="flex flex-col items-end text-orange text-xs font-bold">
-               <span>Alunos Previstos</span>
+               <span>Estimativa</span>
              </div>
           </div>
         </motion.div>
@@ -162,7 +161,7 @@ export default function AdminOverview() {
          </div>
 
          {/* USER DISTRIBUTION PIE CHART */}
-         <div className="bg-[#130a18] border border-white/5 p-6 rounded-2xl flex flex-col relative">
+         <div className="bg-lilac/20 border border-lilac-light/20 p-5 rounded-2xl flex flex-col relative">
             <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                <Users className="w-5 h-5 text-blue-400" />
                Distribuição de Utilizadores
@@ -231,7 +230,7 @@ export default function AdminOverview() {
          </div>
 
          {/* SYSTEM INSIGHTS */}
-         <div className="bg-[#130a18] border border-white/5 p-6 rounded-2xl flex flex-col">
+         <div className="bg-lilac/20 border border-lilac-light/20 p-5 rounded-2xl flex flex-col">
             <h3 className="text-white font-bold mb-6 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-400" />
               Notificações do Sistema
