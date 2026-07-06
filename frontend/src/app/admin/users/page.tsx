@@ -231,10 +231,10 @@ export default function AdminUsers() {
                       </select>
                    </div>
                    <div>
-                      <label className="block text-sm font-bold text-white/70 mb-1">Premium?</label>
+                      <label className="block text-sm font-bold text-white/70 mb-1">Plano de Acesso</label>
                       <select value={formData.is_premium ? 'true' : 'false'} onChange={e => setFormData({...formData, is_premium: e.target.value === 'true'})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-orange">
-                        <option value="false">Gratuito</option>
-                        <option value="true">Premium</option>
+                        <option value="false">Plano Básico (Gratuito)</option>
+                        <option value="true">Plano PRO / Premium</option>
                       </select>
                    </div>
                 </div>
@@ -280,11 +280,11 @@ export default function AdminUsers() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5 border-b border-white/10 text-white/50 text-xs uppercase tracking-wider font-bold">
-                <th className="p-4">Nome / Email</th>
-                <th className="p-4">Cargo</th>
-                <th className="p-4">Estatuto</th>
-                <th className="p-4">XP</th>
-                <th className="p-4 text-right">Ações</th>
+                <th className="p-4 rounded-tl-xl">Nome / Email</th>
+                <th className="p-4">Cargo / Função</th>
+                <th className="p-4">Plano de Acesso</th>
+                <th className="p-4">Pontuação (XP)</th>
+                <th className="p-4 text-right rounded-tr-xl">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -324,10 +324,15 @@ export default function AdminUsers() {
                     <td className="p-4">
                       <button
                         onClick={() => setConfirmModal({ show: true, userId: u.id, userName: u.full_name, action: 'premium', payload: { is_premium: !u.is_premium } })}
-                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold transition-colors ${u.is_premium ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-sm ${
+                          u.is_premium 
+                          ? 'bg-gradient-to-r from-amber-500/20 to-orange/20 border-amber-500/30 text-amber-400 hover:from-amber-500/30 hover:to-orange/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]' 
+                          : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                        }`}
+                        title="Clique para alternar plano"
                       >
-                        <Crown className="w-3.5 h-3.5" />
-                        {u.is_premium ? 'Premium' : 'Gratuito'}
+                        <Crown className={`w-3.5 h-3.5 ${u.is_premium ? 'text-amber-400' : 'text-white/40'}`} />
+                        {u.is_premium ? 'PRO / Premium' : 'Básico (Gratuito)'}
                       </button>
                     </td>
                     <td className="p-4 text-sm font-bold text-white/70">

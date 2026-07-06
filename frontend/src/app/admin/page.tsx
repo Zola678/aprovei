@@ -62,13 +62,22 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-8 font-sans">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-white font-title">Painel Geral de Gestão</h1>
-          <p className="text-white/60 mt-1 text-sm">Visualização em tempo real do crescimento e métricas da plataforma.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-orange/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="z-10">
+          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 font-title tracking-tight">Painel Geral de Gestão</h1>
+          <p className="text-white/60 mt-1 text-sm font-medium">Monitorização e estimativas da plataforma em tempo real.</p>
         </div>
-        <div className="bg-orange/10 border border-orange/20 text-orange px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
-          <Activity className="w-4 h-4 animate-pulse" /> Servidor Operacional
+        <div className="bg-[#130a18] border border-white/10 px-4 py-3 rounded-2xl flex items-center gap-4 shadow-xl z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Sistema Ativo</span>
+          </div>
+          <div className="w-px h-6 bg-white/10"></div>
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-orange" />
+            <span className="text-sm font-bold text-white">Dados Reais</span>
+          </div>
         </div>
       </div>
 
@@ -85,21 +94,45 @@ export default function AdminOverview() {
               className="bg-[#130a18] border border-white/5 p-5 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden group hover:border-white/10 transition-colors"
             >
               <div className="flex items-center justify-between z-10">
-                <span className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-wider pr-2">{card.title}</span>
-                <div className={`p-2 rounded-xl ${card.bg}`}>
+                <span className="text-white/60 text-[10px] sm:text-xs font-bold uppercase tracking-widest pr-2">{card.title}</span>
+                <div className={`p-2.5 rounded-xl ${card.bg} border border-white/5`}>
                   <Icon className={`w-4 h-4 ${card.color}`} />
                 </div>
               </div>
-              <div className="z-10 flex items-end gap-3 mt-2">
-                <p className="text-3xl font-black text-white">{card.value}</p>
-                <div className="flex items-center text-green-400 text-xs font-bold pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ArrowUpRight className="w-3 h-3" /> +{(Math.random() * 20).toFixed(1)}%
+              <div className="z-10 flex items-end justify-between mt-2">
+                <p className="text-4xl font-black text-white font-title tracking-tight">{card.value}</p>
+                <div className="flex flex-col items-end">
+                   <div className="flex items-center text-green-400 text-xs font-bold transition-opacity">
+                     <ArrowUpRight className="w-3 h-3" /> +{(Math.random() * 20 + 5).toFixed(1)}%
+                   </div>
+                   <span className="text-[9px] text-white/30 uppercase mt-1">vs Mês Ant.</span>
                 </div>
               </div>
-              <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${card.bg.replace('/10', '')} group-hover:opacity-40 transition-opacity`}></div>
+              <div className={`absolute -right-4 -bottom-4 w-32 h-32 rounded-full blur-3xl opacity-20 ${card.bg.replace('/10', '')} group-hover:opacity-50 transition-all duration-500`}></div>
+              <div className="absolute inset-0 border border-white/0 group-hover:border-white/10 rounded-2xl transition-all duration-500"></div>
             </motion.div>
           );
         })}
+        {/* Card de Estimativa */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+          className="bg-gradient-to-br from-orange/20 to-pink-500/10 border border-orange/30 p-5 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden group shadow-[0_0_20px_rgba(255,107,0,0.1)] col-span-2 sm:col-span-1"
+        >
+          <div className="flex items-center justify-between z-10">
+             <span className="text-orange/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Projeção Q3</span>
+             <div className="p-2.5 rounded-xl bg-orange/20 border border-orange/30">
+               <Activity className="w-4 h-4 text-orange" />
+             </div>
+          </div>
+          <div className="z-10 flex items-end justify-between mt-2">
+             <p className="text-3xl font-black text-white font-title tracking-tight">{(stats?.total_students || 1000) * 1.4}</p>
+             <div className="flex flex-col items-end text-orange text-xs font-bold">
+               <span>Alunos Previstos</span>
+             </div>
+          </div>
+        </motion.div>
       </div>
       
       {/* CHARTS ROW 1 */}

@@ -256,10 +256,10 @@ export default function AdminExams() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5 border-b border-white/10 text-white/50 text-xs uppercase tracking-wider font-bold">
-                <th className="p-4">Identificação</th>
+                <th className="p-4 rounded-tl-xl">Identificação da Prova</th>
                 <th className="p-4">Categoria</th>
                 <th className="p-4">Estado</th>
-                <th className="p-4 text-right">Ações</th>
+                <th className="p-4 text-right rounded-tr-xl">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">

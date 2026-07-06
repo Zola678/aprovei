@@ -146,22 +146,23 @@ export default function AdminForum() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3 relative mb-4">
-        <div className="relative w-full sm:w-48">
-           <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-           <select 
-             value={filterCategory} 
-             onChange={e => setFilterCategory(e.target.value)}
-             className="w-full bg-[#130a18] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-orange appearance-none"
-           >
-             <option value="all">Todas Categorias</option>
-             <option value="duvidas">Dúvidas</option>
-             <option value="dicas">Dicas & Materiais</option>
-             <option value="noticias">Notícias</option>
-             <option value="orientacao">Orientação Vocacional</option>
-           </select>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div className="flex overflow-x-auto hide-scrollbar gap-2 w-full sm:w-auto pb-2 sm:pb-0">
+           {['all', 'duvidas', 'dicas', 'noticias', 'orientacao'].map((cat) => (
+             <button
+               key={cat}
+               onClick={() => setFilterCategory(cat)}
+               className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                 filterCategory === cat 
+                 ? 'bg-orange text-white shadow-[0_0_10px_rgba(255,107,0,0.5)]' 
+                 : 'bg-[#130a18] border border-white/10 text-white/50 hover:bg-white/5 hover:text-white'
+               }`}
+             >
+               {cat === 'all' ? 'Todas Categorias' : cat === 'duvidas' ? 'Dúvidas' : cat === 'dicas' ? 'Dicas & Materiais' : cat === 'noticias' ? 'Notícias' : 'Orientação Vocacional'}
+             </button>
+           ))}
         </div>
-        <div className="relative w-full flex-1">
+        <div className="relative w-full sm:w-64 shrink-0">
            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
            <input
              type="text"
