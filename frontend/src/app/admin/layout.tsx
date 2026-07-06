@@ -71,6 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'AIA (Inteligência)', path: '/admin/ai', icon: LayoutDashboard },
   ];
 
+  return (
     <div className="min-h-screen flex bg-[#0a050d] text-white">
       {/* Overlay mobile */}
       {isMobileMenuOpen && (

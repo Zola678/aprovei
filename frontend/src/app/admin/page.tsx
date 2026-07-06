@@ -103,7 +103,7 @@ export default function AdminOverview() {
                 <p className="text-4xl font-black text-white font-title tracking-tight">{card.value}</p>
                 <div className="flex flex-col items-end">
                    <div className="flex items-center text-green-400 text-xs font-bold transition-opacity">
-                     <ArrowUpRight className="w-3 h-3" /> +{(Math.random() * 20 + 5).toFixed(1)}%
+                     <ArrowUpRight className="w-3 h-3" /> +{((idx + 1) * 3.4 + 5).toFixed(1)}%
                    </div>
                    <span className="text-[9px] text-white/30 uppercase mt-1">vs Mês Ant.</span>
                 </div>
