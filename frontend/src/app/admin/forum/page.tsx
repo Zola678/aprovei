@@ -1,13 +1,15 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { MessageSquare, Trash2, CheckCircle2, Search, Filter } from 'lucide-react';
+import { MessageSquare, Trash2, CheckCircle2, Search, Filter, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminForum() {
   const [posts, setPosts] = useState<any[]>([]);
+  const [stats, setStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -18,12 +20,21 @@ export default function AdminForum() {
 
   const fetchPosts = async () => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
       let url = '/forum?limit=100';
       if (filterCategory !== 'all') {
         url += `&category=${filterCategory}`;
       }
-      const res = await api.get(url);
-      setPosts(res.data);
+      
+      const [postsRes, statsRes] = await Promise.all([
+        api.get(url, { headers }),
+        api.get('/admin/forum-stats', { headers }).catch(() => ({ data: [] }))
+      ]);
+      
+      setPosts(postsRes.data);
+      setStats(statsRes.data);
     } catch (err) {
       console.error("Erro ao carregar forum", err);
       showToast("Erro ao carregar tópicos.", "error");
@@ -108,33 +119,57 @@ export default function AdminForum() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black text-white font-title">Gestão do Fórum</h1>
-          <p className="text-white/50 text-sm">Monitorize discussões, grupos de estudo e chamadas.</p>
+          <p className="text-white/50 text-sm">Controle de qualidade e métricas de interação.</p>
         </div>
-        <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-3 relative">
-          <div className="relative w-full sm:w-48">
-             <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-             <select 
-               value={filterCategory} 
-               onChange={e => setFilterCategory(e.target.value)}
-               className="w-full bg-[#130a18] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-orange appearance-none"
-             >
-               <option value="all">Todas Categorias</option>
-               <option value="duvidas">Dúvidas</option>
-               <option value="dicas">Dicas & Materiais</option>
-               <option value="noticias">Notícias</option>
-               <option value="orientacao">Orientação Vocacional</option>
-             </select>
-          </div>
-          <div className="relative w-full sm:w-64">
-             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-             <input
-               type="text"
-               placeholder="Procurar tópico ou autor..."
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="w-full bg-[#130a18] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-orange"
-             />
-          </div>
+      </div>
+
+      {/* FORUM STATS CHART */}
+      <div className="bg-[#130a18] border border-white/5 p-6 rounded-2xl flex flex-col mb-6">
+        <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+           <Activity className="w-5 h-5 text-pink-400" />
+           Atividade Semanal (Posts e Respostas)
+        </h3>
+        <div className="h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stats} margin={{ top: 5, right: 0, bottom: 5, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+              <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip 
+                cursor={{ fill: '#ffffff05' }}
+                contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
+              />
+              <Bar dataKey="Posts" fill="#f472b6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Respostas" fill="#c084fc" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center gap-3 relative mb-4">
+        <div className="relative w-full sm:w-48">
+           <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+           <select 
+             value={filterCategory} 
+             onChange={e => setFilterCategory(e.target.value)}
+             className="w-full bg-[#130a18] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-orange appearance-none"
+           >
+             <option value="all">Todas Categorias</option>
+             <option value="duvidas">Dúvidas</option>
+             <option value="dicas">Dicas & Materiais</option>
+             <option value="noticias">Notícias</option>
+             <option value="orientacao">Orientação Vocacional</option>
+           </select>
+        </div>
+        <div className="relative w-full flex-1">
+           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+           <input
+             type="text"
+             placeholder="Procurar tópico ou autor..."
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             className="w-full bg-[#130a18] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-orange"
+           />
         </div>
       </div>
 

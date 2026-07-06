@@ -64,8 +64,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const menuItems = [
     { name: 'Visão Geral', path: '/admin', icon: LayoutDashboard },
     { name: 'Utilizadores', path: '/admin/users', icon: Users },
+    { name: 'Pendentes', path: '/admin/pendings', icon: Users },
     { name: 'Provas', path: '/admin/exams', icon: BookOpen },
     { name: 'Fórum', path: '/admin/forum', icon: MessageSquare },
+    { name: 'AIA (Inteligência)', path: '/admin/ai', icon: LayoutDashboard },
   ];
 
   return (
