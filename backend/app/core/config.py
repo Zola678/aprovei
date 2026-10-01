@@ -17,9 +17,10 @@ class Settings(BaseSettings):
             # Adiciona '+asyncpg' se for postgresql e nao tiver driver especificado
             if self.DATABASE_URL.startswith("postgresql://"):
                 self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-            # asyncpg nao suporta sslmode na query string (suporta via connect_args ou ssl=require)
-            if "sslmode=require" in self.DATABASE_URL:
-                self.DATABASE_URL = self.DATABASE_URL.replace("?sslmode=require", "").replace("&sslmode=require", "")
+            # asyncpg se conecta via SSL configurado em connect_args no database.py.
+            # Query params como ?sslmode=require&channel_binding=require causam erro no asyncpg.
+            if "?" in self.DATABASE_URL and "asyncpg" in self.DATABASE_URL:
+                self.DATABASE_URL = self.DATABASE_URL.split("?")[0]
 
     class Config:
         env_file = ".env"
