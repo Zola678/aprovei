@@ -180,32 +180,62 @@ async def on_startup():
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
                 
-                # SQL para migrar a tabela de utilizadores com os novos campos de entrevista/status
+                # SQL para migrar tabelas - cada coluna individualmente para não bloquear as outras
+                from sqlalchemy import text, inspect
+
+                is_sqlite = str(engine.url).startswith("sqlite")
+
+                async def safe_add_column(conn, table, column, col_type, default=None):
+                    """Adiciona coluna se não existir - compatível com SQLite e PostgreSQL."""
+                    try:
+                        if is_sqlite:
+                            # SQLite: verificar via PRAGMA
+                            result = await conn.execute(text(f"PRAGMA table_info({table})"))
+                            cols = [row[1] for row in result.fetchall()]
+                            if column not in cols:
+                                default_clause = f" DEFAULT {default}" if default is not None else ""
+                                await conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}{default_clause}"))
+                        else:
+                            # PostgreSQL: suporta IF NOT EXISTS nativamente
+                            default_clause = f" DEFAULT {default}" if default is not None else ""
+                            await conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {col_type}{default_clause}"))
+                    except Exception as col_err:
+                        logger.warning(f"Coluna {table}.{column} já existe ou erro ignorado: {col_err}")
+
+                # Migração da tabela users
+                await safe_add_column(conn, "users", "photo_url", "VARCHAR(255)")
+                await safe_add_column(conn, "users", "status", "VARCHAR(50)", "'active'")
+                await safe_add_column(conn, "users", "experience", "TEXT")
+                await safe_add_column(conn, "users", "years_of_experience", "INTEGER")
+                await safe_add_column(conn, "users", "what_intends", "TEXT")
+                await safe_add_column(conn, "users", "resume_pdf_url", "VARCHAR(255)")
+                await safe_add_column(conn, "users", "xp", "INTEGER", "0")
+                await safe_add_column(conn, "users", "premium_until", "TIMESTAMP")
+
+                # Migração da tabela exams
+                await safe_add_column(conn, "exams", "answer_key", "TEXT")
+                await safe_add_column(conn, "exams", "questions_text", "TEXT")
+
+                # Migração da tabela ai_chat_sessions
                 try:
-                    from sqlalchemy import text
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url VARCHAR(255)"))
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'"))
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS experience TEXT"))
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS years_of_experience INTEGER"))
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS what_intends TEXT"))
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS resume_pdf_url VARCHAR(255)"))
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS xp INTEGER DEFAULT 0"))
-                    # Coluna premium_until em falta na BD
-                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMP"))
-
-                    # Migração para exames e desafios IA
-                    await conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS answer_key TEXT"))
-                    await conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS questions_text TEXT"))
-                    await conn.execute(text("ALTER TABLE ai_chat_sessions ADD COLUMN IF NOT EXISTS exam_id INTEGER REFERENCES exams(id)"))
-
-                    # Migração para live calls no fórum
-                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS is_call BOOLEAN DEFAULT FALSE"))
-                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_title VARCHAR(255)"))
-                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_scheduled_at TIMESTAMP"))
-                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_status VARCHAR(50) DEFAULT 'scheduled'"))
-                    await conn.execute(text("ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS call_url VARCHAR(255)"))
+                    if is_sqlite:
+                        result = await conn.execute(text("PRAGMA table_info(ai_chat_sessions)"))
+                        cols = [row[1] for row in result.fetchall()]
+                        if "exam_id" not in cols:
+                            await conn.execute(text("ALTER TABLE ai_chat_sessions ADD COLUMN exam_id INTEGER REFERENCES exams(id)"))
+                    else:
+                        await conn.execute(text("ALTER TABLE ai_chat_sessions ADD COLUMN IF NOT EXISTS exam_id INTEGER REFERENCES exams(id)"))
                 except Exception as e:
-                    logger.error(f"Erro ao rodar migração de tabelas no startup: {e}")
+                    logger.warning(f"Coluna ai_chat_sessions.exam_id ignorada: {e}")
+
+                # Migração da tabela forum_posts
+                await safe_add_column(conn, "forum_posts", "is_call", "BOOLEAN", "FALSE")
+                await safe_add_column(conn, "forum_posts", "call_title", "VARCHAR(255)")
+                await safe_add_column(conn, "forum_posts", "call_scheduled_at", "TIMESTAMP")
+                await safe_add_column(conn, "forum_posts", "call_status", "VARCHAR(50)", "'scheduled'")
+                await safe_add_column(conn, "forum_posts", "call_url", "VARCHAR(255)")
+
+                logger.info("Migração de colunas concluída com sucesso!")
             logger.info("Banco de dados conectado e inicializado com sucesso!")
             
             # Seeding automático de Admin, Provas e Materiais do Ensino Médio
