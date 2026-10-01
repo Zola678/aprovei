@@ -28,16 +28,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      if (parsedUser.role !== 'admin') {
-        router.push('/dashboard');
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        if (parsedUser.role !== 'admin') {
+          router.push('/dashboard');
+        } else {
+          setLoading(false);
+        }
       } else {
-        setLoading(false);
+        router.push('/auth/login');
       }
-    } else {
+    } catch {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
       router.push('/auth/login');
     }
   }, [router]);

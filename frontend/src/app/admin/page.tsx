@@ -12,26 +12,31 @@ export default function AdminOverview() {
   const [instData, setInstData] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = { Authorization: `Bearer ${token}` };
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         const [statsRes, growthRes, distRes, instRes, insightsRes] = await Promise.all([
-          api.get('/auth/admin/stats', { headers }),
+          api.get('/auth/admin/stats', { headers }).catch(() => ({ data: null })),
           api.get('/admin/charts/users-growth', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/charts/distribution', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/institutions', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/ai-insights', { headers }).catch(() => ({ data: [] }))
         ]);
         
-        setStats(statsRes.data);
-        setGrowthData(growthRes.data);
-        setDistData(distRes.data);
-        setInstData(instRes.data);
-        setInsights(insightsRes.data);
+        if (statsRes?.data) setStats(statsRes.data);
+        setGrowthData(Array.isArray(growthRes?.data) ? growthRes.data : []);
+        setDistData(Array.isArray(distRes?.data) ? distRes.data : []);
+        setInstData(Array.isArray(instRes?.data) ? instRes.data : []);
+        setInsights(Array.isArray(insightsRes?.data) ? insightsRes.data : []);
       } catch (err) {
         console.error("Erro ao carregar estatísticas", err);
       } finally {
@@ -143,20 +148,24 @@ export default function AdminOverview() {
                Crescimento da Plataforma
             </h3>
             <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={growthData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                  <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
-                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                  <Line type="monotone" dataKey="Estudantes" stroke="#f97316" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="Explicadores" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                </LineChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={growthData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                    <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
+                      itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                    <Line type="monotone" dataKey="Estudantes" stroke="#f97316" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="Explicadores" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">A carregar gráfico...</div>
+              )}
             </div>
          </div>
 
@@ -167,31 +176,35 @@ export default function AdminOverview() {
                Distribuição de Utilizadores
             </h3>
             <div className="h-[220px] w-full flex justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={distData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {distData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
-                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={distData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {Array.isArray(distData) && distData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
+                      itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">A carregar distribuição...</div>
+              )}
             </div>
             <div className="flex justify-center gap-4 mt-2">
-               {distData.map((d, i) => (
+               {Array.isArray(distData) && distData.map((d, i) => (
                  <div key={i} className="flex items-center gap-2 text-xs text-white/70">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
                     {d.name}: <strong className="text-white">{d.value}</strong>
@@ -210,22 +223,26 @@ export default function AdminOverview() {
                Instituições / Universidades em Foco
             </h3>
             <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={instData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" horizontal={true} vertical={false} />
-                  <XAxis type="number" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} hide />
-                  <YAxis dataKey="name" type="category" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} width={80} />
-                  <Tooltip 
-                    cursor={{ fill: '#ffffff05' }}
-                    contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
-                  />
-                  <Bar dataKey="value" fill="#a855f7" radius={[0, 4, 4, 0]} barSize={20}>
-                    {instData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={instData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" horizontal={true} vertical={false} />
+                    <XAxis type="number" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} hide />
+                    <YAxis dataKey="name" type="category" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} width={80} />
+                    <Tooltip 
+                      cursor={{ fill: '#ffffff05' }}
+                      contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
+                    />
+                    <Bar dataKey="value" fill="#a855f7" radius={[0, 4, 4, 0]} barSize={20}>
+                      {Array.isArray(instData) && instData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">A carregar instituições...</div>
+              )}
             </div>
          </div>
 
@@ -236,7 +253,7 @@ export default function AdminOverview() {
               Notificações do Sistema
             </h3>
             <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-2">
-               {insights.map((insight, i) => (
+               {Array.isArray(insights) && insights.map((insight, i) => (
                  <div key={i} className={`p-4 border rounded-xl ${
                    insight.type === 'warning' ? 'bg-amber-500/10 border-amber-500/20' : 
                    insight.type === 'action' ? 'bg-red-500/10 border-red-500/20' : 
@@ -249,7 +266,7 @@ export default function AdminOverview() {
                    <p className="text-white/60 text-xs leading-relaxed">{insight.description}</p>
                  </div>
                ))}
-               {insights.length === 0 && (
+               {(!Array.isArray(insights) || insights.length === 0) && (
                  <p className="text-white/40 text-sm text-center py-8">Nenhum insight importante de momento.</p>
                )}
             </div>

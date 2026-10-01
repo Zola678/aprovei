@@ -26,12 +26,16 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (token && storedUser) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(storedUser));
-    } else {
+    try {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      if (token && storedUser) {
+        setIsLoggedIn(true);
+        setUser(JSON.parse(storedUser));
+      } else {
+        setIsLoggedIn(false);
+      }
+    } catch {
       setIsLoggedIn(false);
     }
     
@@ -81,6 +85,11 @@ export default function SessionLayoutWrapper({ children }: { children: React.Rea
         <p className="text-white/60 font-semibold animate-pulse">A carregar...</p>
       </div>
     );
+  }
+
+  // Se estiver nas rotas de administração, renderiza direto (AdminLayout cuida do seu layout)
+  if (pathname?.startsWith("/admin")) {
+    return <div className="w-full flex-grow">{children}</div>;
   }
 
   if (!isLoggedIn && !isGuestPage) {

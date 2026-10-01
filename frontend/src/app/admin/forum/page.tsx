@@ -13,15 +13,20 @@ export default function AdminForum() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [mounted, setMounted] = useState(false);
   
   // Modals
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ show: boolean; postId: number; title: string } | null>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const fetchPosts = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       let url = '/forum?limit=100';
       if (filterCategory !== 'all') {
@@ -29,12 +34,12 @@ export default function AdminForum() {
       }
       
       const [postsRes, statsRes] = await Promise.all([
-        api.get(url, { headers }),
+        api.get(url, { headers }).catch(() => ({ data: [] })),
         api.get('/admin/forum-stats', { headers }).catch(() => ({ data: [] }))
       ]);
       
-      setPosts(postsRes.data);
-      setStats(statsRes.data);
+      setPosts(Array.isArray(postsRes?.data) ? postsRes.data : []);
+      setStats(Array.isArray(statsRes?.data) ? statsRes.data : []);
     } catch (err) {
       console.error("Erro ao carregar forum", err);
       showToast("Erro ao carregar tópicos.", "error");
@@ -130,19 +135,23 @@ export default function AdminForum() {
            Atividade Semanal (Posts e Respostas)
         </h3>
         <div className="h-[200px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats} margin={{ top: 5, right: 0, bottom: 5, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-              <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip 
-                cursor={{ fill: '#ffffff05' }}
-                contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
-              />
-              <Bar dataKey="Posts" fill="#f472b6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Respostas" fill="#c084fc" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {mounted ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats} margin={{ top: 5, right: 0, bottom: 5, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  cursor={{ fill: '#ffffff05' }}
+                  contentStyle={{ backgroundColor: '#1c1422', borderColor: '#ffffff10', borderRadius: '12px', color: '#fff' }}
+                />
+                <Bar dataKey="Posts" fill="#f472b6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Respostas" fill="#c084fc" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">A carregar estatísticas...</div>
+          )}
         </div>
       </div>
 
