@@ -44,7 +44,11 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Email ou senha inválidos.');
+      if (!err.response) {
+        setError('Não foi possível conectar ao backend. Verifique se a API está online ou se NEXT_PUBLIC_API_URL está configurada.');
+      } else {
+        setError(err.response?.data?.detail || 'Email ou senha inválidos.');
+      }
     } finally {
       setLoading(false);
     }
