@@ -1,0 +1,41 @@
+services:
+  # ----------------------------------------------------
+  # 1. Backend API (FastAPI + Python)
+  # ----------------------------------------------------
+  - type: web
+    name: aprovei-backend
+    runtime: python
+    plan: free
+    region: frankfurt # ou oregon / ohi
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Cole aqui a sua URL do Neon: postgresql://...
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+
+  # ----------------------------------------------------
+  # 2. Frontend (Next.js + React)
+  # ----------------------------------------------------
+  - type: web
+    name: aprovei-frontend
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run start -- -p $PORT
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false # Ex: https://aprovei-backend.onrender.com/api/v1
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=450"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"

@@ -14,11 +14,16 @@ export const getStorageUrl = (path: string | null | undefined): string => {
   
   let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
   
-  // Se estivermos no navegador, garante que o hostname da API é o mesmo da página (para funcionar no mobile/rede local)
+  // Se estivermos no navegador em ambiente local, sincroniza hostname para rede local
   if (typeof window !== 'undefined') {
     try {
       const urlObj = new URL(apiUrl);
-      if (window.location.hostname) {
+      if (
+        (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+        window.location.hostname &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1'
+      ) {
         urlObj.hostname = window.location.hostname;
         apiUrl = urlObj.toString();
       }

@@ -27,7 +27,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS para Desenvolvimento e Produção
+# CORS para Desenvolvimento e Produção (Render, Railway, Vercel e Local)
 import os
 allowed_origins = [
     "http://localhost:3000",
@@ -37,20 +37,30 @@ allowed_origins = [
 
 cors_origins_env = os.getenv("CORS_ALLOWED_ORIGINS")
 if cors_origins_env:
-    for origin in cors_origins_env.split(","):
-        clean_origin = origin.strip()
-        if clean_origin:
-            if clean_origin.endswith("/"):
-                clean_origin = clean_origin[:-1]
-            allowed_origins.append(clean_origin)
+    if cors_origins_env.strip() == "*":
+        allowed_origins = ["*"]
+    else:
+        for origin in cors_origins_env.split(","):
+            clean_origin = origin.strip()
+            if clean_origin:
+                if clean_origin.endswith("/"):
+                    clean_origin = clean_origin[:-1]
+                allowed_origins.append(clean_origin)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_kwargs = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+if "*" in allowed_origins:
+    cors_kwargs["allow_origins"] = ["*"]
+    cors_kwargs["allow_credentials"] = False
+else:
+    cors_kwargs["allow_origins"] = allowed_origins
+    cors_kwargs["allow_origin_regex"] = r"^https?://.*(railway\.app|onrender\.com|vercel\.app|pages\.dev|localhost)(:\d+)?$"
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 from fastapi.staticfiles import StaticFiles
 import os
